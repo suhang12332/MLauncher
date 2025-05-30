@@ -1,0 +1,46 @@
+// Player Errors
+"error.invalid_username" = "Invalid username";
+"error.encoding" = "String encoding error";
+"error.uuid_generation" = "UUID generation failed";
+
+// Time Format
+"time.hours_minutes" = "%d hours %d minutes";
+
+// Player Status
+"player.status.playing" = "Playing";
+"player.status.last_played" = "Last played: %@";
+
+// General
+"app.name" = "MLauncher";
+"app.version" = "Version %@";
+
+// Sidebar
+"sidebar.title" = "MLauncher";
+"sidebar.select_item" = "Please select an item";
+"sidebar.resources.title" = "Resources";
+"sidebar.games.title" = "Games";
+
+// Detail View
+"detail.title" = "Details";
+"detail.select_item" = "Please select an item from the left";
+
+// Game Content
+"game.content.title" = "Game Content";
+"game.content.version" = "Version";
+"game.content.last_played" = "Last Played";
+"game.content.play_time" = "Play Time";
+"game.content.play_button" = "Play";
+"game.content.settings_button" = "Settings";
+
+// Resource Content
+"resource.content.title" = "Resource Content";
+"resource.content.type.mod" = "Mods";
+"resource.content.type.datapack" = "Data Packs";
+"resource.content.type.shader" = "Shaders";
+"resource.content.type.resourcepack" = "Resource Packs";
+"resource.content.type.modpack" = "Modpacks";
+
+// Language Selection
+"language.zh-Hans" = "简体中文";
+"language.zh-Hant" = "繁體中文";
+"language.en" = "English"; 

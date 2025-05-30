@@ -1,0 +1,46 @@
+// Player Errors
+"error.invalid_username" = "無效的用戶名";
+"error.encoding" = "字串編碼錯誤";
+"error.uuid_generation" = "UUID生成失敗";
+
+// Time Format
+"time.hours_minutes" = "%d小時%d分鐘";
+
+// Player Status
+"player.status.playing" = "正在遊玩";
+"player.status.last_played" = "最後遊玩：%@";
+
+// 通用
+"app.name" = "MLauncher";
+"app.version" = "版本 %@";
+
+// 側邊欄
+"sidebar.title" = "MLauncher";
+"sidebar.select_item" = "請選擇項目";
+"sidebar.resources.title" = "資源列表";
+"sidebar.games.title" = "遊戲列表";
+
+// 詳情視圖
+"detail.title" = "詳情";
+"detail.select_item" = "請從左側選擇一項";
+
+// 遊戲內容
+"game.content.title" = "遊戲內容";
+"game.content.version" = "版本";
+"game.content.last_played" = "上次遊玩";
+"game.content.play_time" = "遊戲時長";
+"game.content.play_button" = "開始遊戲";
+"game.content.settings_button" = "遊戲設置";
+
+// 資源內容
+"resource.content.title" = "資源內容";
+"resource.content.type.mod" = "模組";
+"resource.content.type.datapack" = "數據包";
+"resource.content.type.shader" = "光影";
+"resource.content.type.resourcepack" = "資源包";
+"resource.content.type.modpack" = "整合包";
+
+// 語言選擇
+"language.zh-Hans" = "简体中文";
+"language.zh-Hant" = "繁體中文";
+"language.en" = "English"; 

@@ -1,0 +1,66 @@
+// Player Errors
+"error.invalid_username" = "无效的用户名";
+"error.encoding" = "字符串编码错误";
+"error.uuid_generation" = "UUID生成失败";
+
+// Time Format
+"time.hours_minutes" = "%d小时%d分钟";
+
+// Player Status
+"player.status.playing" = "正在游玩";
+"player.status.last_played" = "最后游玩：%@";
+
+// Sidebar Navigation
+"sidebar.games" = "游戏";
+"sidebar.resources" = "资源";
+"sidebar.select_item" = "请选择项目";
+"app.name" = "MLauncher";
+"app.version" = "版本 %@";
+
+// Resource Types
+"resource.mod" = "模组";
+"resource.datapack" = "数据包";
+"resource.shader" = "光影";
+"resource.resourcepack" = "资源包";
+"resource.modpack" = "整合包";
+
+// Resource Lists
+"resource.mod.list" = "模组列表";
+"resource.datapack.list" = "数据包列表";
+"resource.shader.list" = "光影列表";
+"resource.resourcepack.list" = "资源包列表";
+"resource.modpack.list" = "整合包列表";
+
+// Game Sidebar
+"game.sidebar.title" = "游戏信息";
+
+// 侧边栏
+"sidebar.title" = "MLauncher";
+"sidebar.select_item" = "请选择项目";
+"sidebar.resources.title" = "资源列表";
+"sidebar.games.title" = "游戏列表";
+
+// 详情视图
+"detail.title" = "详情";
+"detail.select_item" = "请从左侧选择一项";
+
+// 游戏内容
+"game.content.title" = "游戏内容";
+"game.content.version" = "版本";
+"game.content.last_played" = "上次游玩";
+"game.content.play_time" = "游戏时长";
+"game.content.play_button" = "开始游戏";
+"game.content.settings_button" = "游戏设置";
+
+// 资源内容
+"resource.content.title" = "资源内容";
+"resource.content.type.mod" = "模组";
+"resource.content.type.datapack" = "数据包";
+"resource.content.type.shader" = "光影";
+"resource.content.type.resourcepack" = "资源包";
+"resource.content.type.modpack" = "整合包";
+
+// 语言选择
+"language.zh-Hans" = "简体中文";
+"language.zh-Hant" = "繁體中文";
+"language.en" = "English"; 
