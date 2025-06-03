@@ -24,25 +24,15 @@
 "resource.resourcepack" = "资源包";
 "resource.modpack" = "整合包";
 
-// Resource Lists
-"resource.mod.list" = "模组列表";
-"resource.datapack.list" = "数据包列表";
-"resource.shader.list" = "光影列表";
-"resource.resourcepack.list" = "资源包列表";
-"resource.modpack.list" = "整合包列表";
 
 // Game Sidebar
 "game.sidebar.title" = "游戏信息";
 
 // 侧边栏
-"sidebar.title" = "MLauncher";
-"sidebar.select_item" = "请选择项目";
+
 "sidebar.resources.title" = "资源列表";
 "sidebar.games.title" = "游戏列表";
 
-// 详情视图
-"detail.title" = "详情";
-"detail.select_item" = "请从左侧选择一项";
 
 // 游戏内容
 "game.content.title" = "游戏内容";
@@ -63,4 +53,98 @@
 // 语言选择
 "language.zh-Hans" = "简体中文";
 "language.zh-Hant" = "繁體中文";
-"language.en" = "English"; 
+"language.en" = "English";
+
+// 设置
+"settings.language.title" = "语言设置";
+"settings.language.picker" = "选择语言";
+"settings.general.tab" = "通用";
+"settings.player.tab" = "玩家";
+"settings.game.tab" = "游戏";
+"settings.minecraft_versions_url.label" = "Minecraft 版本资源地址";
+"settings.modrinth_api_url.label" = "Modrinth API 地址";
+"settings.default_java_path.label" = "默认 Java 路径";
+"settings.default_memory_allocation.label" = "默认内存分配";
+"settings.concurrent_downloads.label" = "下载并发数";
+
+// Settings - Titles and Placeholders
+"settings.general.title" = "通用";
+"settings.player.title" = "玩家";
+"settings.game.title" = "游戏";
+"settings.minecraft_versions_url.placeholder" = "请输入 Minecraft 版本资源地址";
+"settings.modrinth_api_url.placeholder" = "请输入 Modrinth API 地址";
+"settings.default_java_path.placeholder" = "请输入默认 Java 路径";
+"settings.player.placeholder" = "玩家设置将在这里";
+
+// Alert - Add Player
+"alert.add_player.title" = "添加玩家";
+"alert.add_player.message" = "请输入玩家名称，注意：玩家名称必须唯一，已存在的玩家名称将无法添加";
+"alert.add_player.placeholder" = "玩家名称";
+"alert.button.cancel" = "取消";
+"alert.button.add" = "添加"; 
+
+
+// Common
+"result.empty" = "查询结果为空";
+"result.error" = "😩查询错误，请稍后再试!";
+
+// toolbar
+"menu.sort" = "排序";
+"menu.sort.relevance" = "相关度";
+"menu.sort.downloads" = "下载量";
+"menu.sort.follows" = "关注数";
+"menu.sort.newest" = "最新";
+"menu.sort.updated" = "最近更新";
+"player.add" = "添加玩家";
+
+// Filter
+"filter.version.icon" = "🎮游戏版本";
+"filter.version" = "游戏版本";
+"filter.category" = "分类";
+"filter.environment" = "环境";
+"filter.behavior" = "行为";
+"filter.performance" = "性能要求";
+"filter.resolutions" = "分辨率";
+"category.loading" = "正在加载%@...";
+
+// Environment
+"environment.client" = "客户端";
+"environment.server" = "服务端"; 
+
+// Platform Support
+"platform.client.required" = "必需";
+"platform.server.required" = "必需";
+"platform.client.optional" = "可选";
+"platform.server.optional" = "可选";
+"platform.client.unsupported" = "不支持";
+"platform.server.unsupported" = "不支持";
+"platform.support" = "平台支持";
+
+// Game Versions
+"game.versions.title" = "版本";
+"game.versions.numeric" = "数字版本";
+"game.versions.all" = "所有版本";
+"game.versions.filter" = "过滤版本";
+
+// Project Info Sections
+"project.info.compatibility" = "兼容性";
+"project.info.minecraft" = "Minecraft：";
+"project.info.minecraft.edition" = "Java 版";
+"project.info.versions" = "版本：";
+"project.info.platforms" = "Mod 加载器：";
+"project.info.environments" = "支持环境";
+"project.info.environments.client" = "客户端：";
+"project.info.environments.server" = "服务端：";
+"project.info.links" = "链接";
+"project.info.links.issues" = "报告问题";
+"project.info.links.source" = "查看源码";
+"project.info.links.wiki" = "访问维基";
+"project.info.links.discord" = "加入 Discord";
+"project.info.links.donate" = "捐赠";
+"project.info.creators" = "创作者";
+"project.info.creators.moderator" = "社区管理员";
+"project.info.creators.owner" = "所有者";
+"project.info.details" = "详情";
+"project.info.details.licensed" = "许可证";
+"project.info.details.published" = "发布时间";
+"project.info.details.updated" = "更新时间"; 

@@ -94,11 +94,11 @@ enum PlayerError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidUsername:
-            return NSLocalizedString("error.invalid_username", comment: "无效的用户名错误")
+            return "error.invalid_username".localized()
         case .encodingError:
-            return NSLocalizedString("error.encoding", comment: "字符串编码错误")
+            return "error.encoding".localized()
         case .uuidGenerationFailed:
-            return NSLocalizedString("error.uuid_generation", comment: "UUID生成失败错误")
+            return "error.uuid_generation".localized()
         case .custom(let message):
             return message
         }

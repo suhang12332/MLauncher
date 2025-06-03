@@ -57,10 +57,10 @@ struct Player: Identifiable, Codable, Equatable {
         isCurrent: Bool = false,
         gameRecords: [String: PlayerGameRecord] = [:]
     ) throws {
-        let playerId = try PlayerUtils.generateOfflineUUID(for: name)
-        self.id = playerId
+        let uuid = try PlayerUtils.generateOfflineUUID(for: name)
+        self.id = uuid
         self.name = name
-        self.avatarName = PlayerUtils.avatarName(for: playerId) ?? "steve"
+        self.avatarName = PlayerUtils.avatarName(for: uuid) ?? "steve"
         self.createdAt = createdAt
         self.lastPlayed = lastPlayed
         self.isOnlineAccount = isOnlineAccount
@@ -114,7 +114,7 @@ struct PlayerGameRecord: Identifiable, Codable, Equatable {
     var formattedPlayTime: String {
         let hours = Int(playTime) / 3600
         let minutes = (Int(playTime) % 3600) / 60
-        return String(format: NSLocalizedString("time.hours_minutes", comment: "时间格式：小时和分钟"), hours, minutes)
+        return String(format: "time.hours_minutes".localized(), hours, minutes)
     }
     
     /// 判断游戏是否正在运行

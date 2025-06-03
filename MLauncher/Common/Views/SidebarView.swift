@@ -3,11 +3,11 @@ import SwiftUI
 /// 通用侧边栏视图组件
 /// 用于显示游戏列表和资源列表的导航
 public struct SidebarView: View {
-    @Binding var selectedItem: SidebarItem?
+    @Binding var selectedItem: SidebarItem
     let games: [String]
     @StateObject private var lang = LanguageManager.shared
     
-    public init(selectedItem: Binding<SidebarItem?>, games: [String]) {
+    public init(selectedItem: Binding<SidebarItem>, games: [String]) {
         self._selectedItem = selectedItem
         self.games = games
     }
@@ -33,15 +33,6 @@ public struct SidebarView: View {
             }
         }
         .navigationTitle("app.name".localized())
-        .id(lang.selectedLanguage) // 强制视图在语言改变时重新创建
+        .id(lang.selectedLanguage) // 强制视图在语言改变时重新创建    
     }
 }
-
-#Preview {
-    NavigationStack {
-        SidebarView(
-            selectedItem: .constant(nil),
-            games: ["minecraft", "terraria"]
-        )
-    }
-} 

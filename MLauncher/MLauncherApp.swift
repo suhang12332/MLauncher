@@ -9,11 +9,20 @@ import SwiftUI
 
 @main
 struct MLauncherApp: App {
-    /// 当前语言
-    @AppStorage("appLanguage") private var language = "en"
+    // Instantiate PlayerListViewModel and make it available in the environment
+    @StateObject private var playerListViewModel = PlayerListViewModel()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView().environment(\.locale, Locale(identifier: language))
-        }.windowStyle(.automatic)
+            MainView()
+                .environmentObject(playerListViewModel)
+            // Inject the view model into the environment
+        }        .windowStyle(.titleBar)
+            .windowToolbarStyle(.unified(showsTitle: false))
+            .windowResizability(.contentMinSize)
+        
+        Settings {
+            SettingsView()
+        }
     }
 }

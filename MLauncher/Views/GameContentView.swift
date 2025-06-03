@@ -5,7 +5,7 @@ struct GameContentView: View {
     
     var body: some View {
         VStack {
-            Text(NSLocalizedString("game.content.title", comment: "游戏内容标题"))
+            Text("game.content.title".localized())
                 .font(.title)
             
             // 这里添加游戏详情内容

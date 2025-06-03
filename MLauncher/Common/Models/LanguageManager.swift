@@ -14,6 +14,28 @@ public class LanguageManager: ObservableObject {
         }
     }
     
+    /// Minecraft 版本资源文件地址
+    @AppStorage("minecraftVersionManifestURL") public var minecraftVersionManifestURL: String = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+    
+    /// Modrinth API 基础地址
+    @AppStorage("modrinthAPIBaseURL") public var modrinthAPIBaseURL: String = "https://api.modrinth.com/v2"
+    
+    /// 默认 Java 路径
+    @AppStorage("defaultJavaPath") public var defaultJavaPath: String = "/usr/bin/java"
+    
+    /// 默认内存分配 (MB)
+    @AppStorage("defaultMemoryAllocation") public var defaultMemoryAllocation: Int = 512
+    
+    /// 下载资源的并发数
+    @AppStorage("concurrentDownloads") public var concurrentDownloads: Int = 4
+    
+    /// 支持的语言列表
+    public let languages: [(String, String)] = [
+        ("简体中文", "zh-Hans"),
+        ("繁體中文", "zh-Hant"),
+        ("English", "en"),
+    ]
+    
     /// 获取当前语言的 Bundle
     public var bundle: Bundle {
         if let path = Bundle.main.path(forResource: selectedLanguage, ofType: "lproj"),

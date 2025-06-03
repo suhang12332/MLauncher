@@ -43,4 +43,25 @@
 // Language Selection
 "language.zh-Hans" = "简体中文";
 "language.zh-Hant" = "繁體中文";
-"language.en" = "English"; 
+"language.en" = "English";
+
+// Settings
+"settings.language.title" = "Language Settings";
+"settings.language.picker" = "Select Language";
+"settings.general.tab" = "General";
+"settings.player.tab" = "Player";
+"settings.game.tab" = "Game";
+"settings.minecraft_versions_url.label" = "Minecraft Versions URL";
+"settings.modrinth_api_url.label" = "Modrinth API URL";
+"settings.default_java_path.label" = "Default Java Path";
+"settings.default_memory_allocation.label" = "Default Memory Allocation";
+"settings.concurrent_downloads.label" = "Concurrent Downloads";
+
+// Settings - Titles and Placeholders
+"settings.general.title" = "General";
+"settings.player.title" = "Player";
+"settings.game.title" = "Game";
+"settings.minecraft_versions_url.placeholder" = "Enter Minecraft Versions URL";
+"settings.modrinth_api_url.placeholder" = "Enter Modrinth API URL";
+"settings.default_java_path.placeholder" = "Enter Default Java Path";
+"settings.player.placeholder" = "Player settings will go here."; 

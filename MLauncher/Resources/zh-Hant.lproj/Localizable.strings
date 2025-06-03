@@ -43,4 +43,32 @@
 // 語言選擇
 "language.zh-Hans" = "简体中文";
 "language.zh-Hant" = "繁體中文";
-"language.en" = "English"; 
+"language.en" = "English";
+
+// 設置
+"settings.language.title" = "語言設置";
+"settings.language.picker" = "選擇語言";
+"settings.general.tab" = "通用";
+"settings.player.tab" = "玩家";
+"settings.game.tab" = "遊戲";
+"settings.minecraft_versions_url.label" = "Minecraft 版本資源地址";
+"settings.modrinth_api_url.label" = "Modrinth API 地址";
+"settings.default_java_path.label" = "預設 Java 路徑";
+"settings.default_memory_allocation.label" = "預設記憶體分配";
+"settings.concurrent_downloads.label" = "下載並發數";
+
+// Settings - Titles and Placeholders
+"settings.general.title" = "通用";
+"settings.player.title" = "玩家";
+"settings.game.title" = "遊戲";
+"settings.minecraft_versions_url.placeholder" = "請輸入 Minecraft 版本資源地址";
+"settings.modrinth_api_url.placeholder" = "請輸入 Modrinth API 地址";
+"settings.default_java_path.placeholder" = "請輸入預設 Java 路徑";
+"settings.player.placeholder" = "玩家設置將在這裡";
+
+// Alert - Add Player
+"alert.add_player.title" = "添加玩家";
+"alert.add_player.message" = "請輸入玩家名稱，注意：玩家名稱必須唯一，已存在的玩家名稱將無法添加";
+"alert.add_player.placeholder" = "玩家名稱";
+"alert.button.cancel" = "取消";
+"alert.button.add" = "添加"; 

@@ -47,6 +47,9 @@ struct GameVersionInfo: Codable, Equatable, Identifiable {
     
     /// 游戏启动命令
     var launchCommand: String
+    
+    /// 运行内存大小 (MB)
+    var runningMemorySize: Int
 
     /// 初始化游戏版本信息
     /// - Parameters:
@@ -62,6 +65,7 @@ struct GameVersionInfo: Codable, Equatable, Identifiable {
     ///   - javaPath: Java路径，默认空字符串
     ///   - jvmArguments: JVM参数，默认空字符串
     ///   - launchCommand: 启动命令，默认空字符串
+    ///   - runningMemorySize: 运行内存大小 (MB)，默认 2048
     init(
         id: UUID = UUID(),
         gameName: String,
@@ -74,7 +78,8 @@ struct GameVersionInfo: Codable, Equatable, Identifiable {
         isRunning: Bool = false,
         javaPath: String = "",
         jvmArguments: String = "",
-        launchCommand: String = ""
+        launchCommand: String = "",
+        runningMemorySize: Int = 2048
     ) {
         self.id = id.uuidString
         self.gameName = gameName
@@ -88,5 +93,6 @@ struct GameVersionInfo: Codable, Equatable, Identifiable {
         self.javaPath = javaPath
         self.jvmArguments = jvmArguments
         self.launchCommand = launchCommand
+        self.runningMemorySize = runningMemorySize
     }
 } 
