@@ -1,9 +1,5 @@
 # MLauncher
 
-<div align="center">
-  <img src="MLauncher/Assets.xcassets/AppIcon.appiconset/AppIcon-1024x1024@1x.png" alt="MLauncher Logo" width="200"/>
-</div>
-
 ## 🚀 简介
 
 MLauncher 是一个现代化的 macOS 应用程序启动器，为用户提供快速、高效的应用程序访问体验。通过简洁的界面和智能的搜索功能，让您的应用程序启动变得更加便捷。
