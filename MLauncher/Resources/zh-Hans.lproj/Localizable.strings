@@ -1,3 +1,6 @@
+"common.cancel" = "取消";
+"common.confirm" = "确认";
+
 // Player Errors
 "error.invalid_username" = "无效的用户名";
 "error.encoding" = "字符串编码错误";
@@ -147,4 +150,53 @@
 "project.info.details" = "详情";
 "project.info.details.licensed" = "许可证";
 "project.info.details.published" = "发布时间";
-"project.info.details.updated" = "更新时间"; 
+"project.info.details.updated" = "更新时间";
+
+// 主题设置
+"settings.theme.title" = "主题设置";
+"settings.theme.picker" = "选择主题";
+"settings.theme.system" = "跟随系统";
+"settings.theme.light" = "浅色";
+"settings.theme.dark" = "深色"; 
+
+// Version table columns
+"versions.name" = "版本";
+"versions.game_versions" = "游戏版本";
+"versions.loaders" = "加载器";
+"versions.type" = "类型";
+"versions.downloads" = "下载量";
+"versions.date" = "发布日期";
+"versions.loading" = "正在加载版本信息...";
+"versions.platforms" = "平台";
+"versions.operate" = "操作";
+
+// Game Form
+"game.form.title" = "添加游戏";
+"game.form.icon" = "游戏图标";
+"game.form.icon.description" = "为游戏选择图标";
+"game.form.name" = "游戏名称";
+"game.form.name.placeholder" = "请输入游戏名称";
+"game.form.version" = "游戏版本";
+"game.form.modloader" = "mod加载器";
+"game.form.save.error" = "保存游戏信息失败";
+
+// Download Progress
+"download.core.title" = "核心文件";
+"download.resources.title" = "资源文件";
+"download.progress" = "进度：%d%%";
+"download.current.file" = "当前文件：%@";
+"download.files" = "文件：%d/%d";
+
+// Notification
+"notification.download.complete.title" = "下载完成";
+"notification.download.complete.body" = "%@ (版本: %@, 加载器: %@) 已成功下载。";
+"notification.download.failed.title" = "下载失败";
+"notification.download.failed.body" = "%@ (版本: %@, 加载器: %@) 下载失败: %@";
+
+// File Names
+"file.client.jar" = "客户端文件";
+"file.library" = "库文件：%@";
+"file.native" = "原生库：%@";
+"file.asset.index" = "资源索引";
+"file.logging.config" = "日志配置";
+"file.asset" = "资源文件：%@";

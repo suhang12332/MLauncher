@@ -3,19 +3,26 @@ import SwiftUI
 /// 详情区域工具栏内容
 public struct DetailToolbarView: ToolbarContent {
     let selectedItem: SidebarItem
-    @State private var searchText = ""
-    @EnvironmentObject var playerListViewModel: PlayerListViewModel // Get the shared view model
+    
+    @EnvironmentObject var playerListViewModel: PlayerListViewModel  // Get the shared view model
     @Binding var sortIndex: String
+    @Binding var gameResourcesType: String
     @Binding var currentPage: Int
+
+    @Binding var versionCurrentPage: Int
+    @Binding var versionTotal: Int
+
     let totalItems: Int
-    let itemsPerPage: Int
+
+
     @Binding var project: ModrinthProjectDetail?
     @Binding var selectProjectId: String?
     @Binding var selectedTab: Int
-    
+    @Binding var searchText: String
+
     // MARK: - Computed Properties
     var totalPages: Int {
-        max(1, Int(ceil(Double(totalItems) / Double(itemsPerPage))))
+        max(1, Int(ceil(Double(totalItems) / Double(20))))
     }
     // MARK: - Private Methods
     private func handlePageChange(_ increment: Int) {
@@ -25,33 +32,46 @@ public struct DetailToolbarView: ToolbarContent {
         }
     }
 
-    
     public var body: some ToolbarContent {
-        
+
         // 根据 selectedItem 定制工具栏内容
         ToolbarItemGroup(placement: .primaryAction) {
             switch selectedItem {
             case .game(let gameId):
-                GameContentView(gameId: gameId)
+                sortMenu
+                resourcesMenu
+                    
+                paginationControls
+                
+                Spacer()
             case .resource:
-                if let _ = selectProjectId {
-                    ModrinthProjectDetailToolbarView(projectDetail: $project,selectedTab: $selectedTab, onBack: {
-                        selectProjectId = nil
-                    })
+                if selectProjectId != nil {
+                    ModrinthProjectDetailToolbarView(
+                        projectDetail: $project,
+                        selectedTab: $selectedTab,
+                        versionCurrentPage: $versionCurrentPage,
+                        versionTotal: $versionTotal,
+                        onBack: {
+                            selectProjectId = nil
+                        }
+                    )
                 } else {
                     sortMenu
                     paginationControls
                     Spacer()
                 }
             }
-            
+
         }
     }
-    
-    
+
     private var currentSortTitle: String {
         "menu.sort.\(sortIndex)".localized()
     }
+    private var currentResourceTitle: String {
+        "resource.content.type.\(gameResourcesType)".localized()
+    }
+    
     private var sortMenu: some View {
         Menu {
             ForEach(
@@ -66,6 +86,23 @@ public struct DetailToolbarView: ToolbarContent {
             }
         } label: {
             Text(currentSortTitle)
+        }
+        .help("player.add".localized())
+    }
+    private var resourcesMenu: some View {
+        Menu {
+            ForEach(
+                ["mod", "datapack", "shader", "resourcepack"],
+                id: \.self
+            ) { sort in
+                Button(
+                    "resource.content.type.\(sort)".localized()
+                ) {
+                    gameResourcesType = sort
+                }
+            }
+        } label: {
+            Text(currentResourceTitle)
         }
         .help("player.add".localized())
     }

@@ -71,4 +71,11 @@
 "alert.add_player.message" = "請輸入玩家名稱，注意：玩家名稱必須唯一，已存在的玩家名稱將無法添加";
 "alert.add_player.placeholder" = "玩家名稱";
 "alert.button.cancel" = "取消";
-"alert.button.add" = "添加"; 
+"alert.button.add" = "添加";
+
+// 主題設置
+"settings.theme.title" = "主題設置";
+"settings.theme.picker" = "選擇主題";
+"settings.theme.system" = "跟隨系統";
+"settings.theme.light" = "淺色";
+"settings.theme.dark" = "深色"; 

@@ -13,17 +13,17 @@ struct ModrinthDetailView: View {
     @Binding var selectedResolutions: [String]
     @Binding var selectedPerformanceImpact: [String]
     @Binding var selectedProjectId: String?
+    @Binding var searchText: String
     
     @StateObject private var viewModel = ModrinthSearchViewModel()
     @State private var hasLoaded = false
-    @State var searchText: String=""
     
     // Timer to implement debounce for search
     @State private var searchTimer: Timer? = nil
     
     // MARK: - Body
     var body: some View {
-        VStack {
+        LazyVStack {
             if viewModel.isLoading {
                 EmptyView()
             } else if let error = viewModel.error {

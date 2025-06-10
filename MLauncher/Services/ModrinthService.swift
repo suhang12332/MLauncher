@@ -2,12 +2,6 @@ import Foundation
 
 enum ModrinthService {
 
-    static func fetchProject(id: String) async throws -> ModrinthProject {
-        let (data, _) = try await URLSession.shared.data(
-            from: URLConfig.API.Modrinth.project(id: id)
-        )
-        return try JSONDecoder().decode(ModrinthProject.self, from: data)
-    }
 
     static func searchProjects(
         facets: [[String]]? = nil,
@@ -77,5 +71,17 @@ enum ModrinthService {
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
         
         return try decoder.decode(ModrinthProjectDetail.self, from: data)
+    }
+
+    static func fetchProjectVersions(id: String) async throws -> [ModrinthProjectDetailVersion] {
+        let url = URLConfig.API.Modrinth.version(id: id)
+        let (data, _) = try await URLSession.shared.data(from: url)
+        
+        let decoder = JSONDecoder()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        decoder.dateDecodingStrategy = .formatted(dateFormatter)
+        return try decoder.decode([ModrinthProjectDetailVersion].self, from: data)
     }
 }

@@ -11,6 +11,9 @@ private enum Constants {
 struct ModrinthProjectDetailToolbarView: View {
     @Binding var projectDetail: ModrinthProjectDetail?
     @Binding var selectedTab: Int
+    
+    @Binding var versionCurrentPage: Int
+    @Binding var versionTotal: Int
     var onBack: () -> Void
 
     var body: some View {
@@ -59,15 +62,49 @@ struct ModrinthProjectDetailToolbarView: View {
         }
 
         Spacer()
+        // 文件版本的分页
+        if selectedTab == 1 {
+            versionPaginationControls
+        }
+
         Button(action: onBack) {
-            Image(systemName: "chevron.left")
+            Image(systemName: "house")
         }
         Picker("view.mode.title".localized(), selection: $selectedTab) {
             Label("view.mode.details".localized(), systemImage: "doc.text").tag(0)
-            Label("view.mode.downloads".localized(), systemImage: "arrow.down.square").tag(1)
+            Label("view.mode.downloads".localized(), systemImage: "arrow.down.circle").tag(1)
         }
         .pickerStyle(.segmented)
         .background(.clear)
+    }
+
+    private var versionTotalPages: Int {
+        max(1, Int(ceil(Double(versionTotal) / Double(20))))
+    }
+    private var versionPaginationControls: some View {
+        HStack(spacing: 8) {
+            // Previous Page Button
+            Button(action: { versionCurrentPage -= 1 }) {
+                Image(systemName: "chevron.left")
+            }
+            .disabled(versionCurrentPage <= 1)
+
+            // Page Info
+            HStack(spacing: 8) {
+                Text("第 \(versionCurrentPage) 页")
+                Divider()
+                    .frame(height: 16)
+                Text("共 \(versionTotalPages) 页")
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+
+            // Next Page Button
+            Button(action: { versionCurrentPage += 1 }) {
+                Image(systemName: "chevron.right")
+            }
+            .disabled(versionCurrentPage == versionTotalPages)
+        }
     }
 
 }

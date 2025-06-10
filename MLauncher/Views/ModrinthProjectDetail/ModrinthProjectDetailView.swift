@@ -1,5 +1,5 @@
 import SwiftUI
-//import MarkdownUI
+import MarkdownUI
 
 // MARK: - Constants
 private enum Constants {
@@ -17,8 +17,8 @@ struct ModrinthProjectDetailView: View {
     
     @Binding var selectedTab: Int
     @State var projectDetail: ModrinthProjectDetail
-    
-    
+    @Binding var currentPage: Int // Current page, 1-indexed
+    @Binding var versionTotal: Int
     var body: some View {
         projectDetailView(projectDetail)
         
@@ -112,7 +112,7 @@ struct ModrinthProjectDetailView: View {
             case 0:
                 descriptionView(project)
             case 1:
-                versionsView(project)
+                ModrinthProjectDetailVersionView(currentPage: $currentPage,versionTotal: $versionTotal,projectId: project.id)
             default:
                 EmptyView()
             }
@@ -122,26 +122,8 @@ struct ModrinthProjectDetailView: View {
     }
     
     private func descriptionView(_ project: ModrinthProjectDetail) -> some View {
-        Text(project.body)
+        Markdown(project.body)
     }
-    
-    private func versionsView(_ project: ModrinthProjectDetail) -> some View {
-        FlowLayout(spacing: 6) {
-            ForEach(project.versions, id: \.self) { version in
-                Text(version)
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(Color.gray.opacity(0.15))
-                    .cornerRadius(4)
-            }
-        }
-    }
-    
-    
-    
-    
-    
     
 }
 

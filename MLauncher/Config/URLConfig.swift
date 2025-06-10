@@ -25,17 +25,17 @@ enum URLConfig {
             // 版本相关
             static let versions = baseURL.appendingPathComponent("version")
             static func version(id: String) -> URL {
-                baseURL.appendingPathComponent("version/\(id)")
+                baseURL.appendingPathComponent("project/\(id)/version")
             }
 
             // 搜索相关
             static let search = baseURL.appendingPathComponent("search")
 
-            // 用户相关
-            static let users = baseURL.appendingPathComponent("user")
-            static func user(id: String) -> URL {
-                baseURL.appendingPathComponent("user/\(id)")
-            }
+//            // 用户相关
+//            static let users = baseURL.appendingPathComponent("user")
+//            static func user(id: String) -> URL {
+//                baseURL.appendingPathComponent("user/\(id)")
+//            }
 
             // 标签相关
             enum Tag {

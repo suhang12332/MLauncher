@@ -5,6 +5,7 @@ import Foundation
 /// 用于显示应用程序的设置选项
 public struct SettingsView: View {
     @ObservedObject private var lang = LanguageManager.shared
+    @ObservedObject private var theme = ThemeManager.shared
     
     /// 计算最大允许的内存分配 (MB)
     private var maximumMemoryAllocation: Int {
@@ -30,6 +31,17 @@ public struct SettingsView: View {
                         Picker("", selection: $lang.selectedLanguage) {
                             ForEach(lang.languages, id: \.1) { name, code in
                                 Text(name).tag(code)
+                            }
+                        }
+                        .labelsHidden()
+                    }
+                    
+                    HStack {
+                        Text("settings.theme.picker".localized())
+                        Spacer()
+                        Picker("", selection: $theme.themeMode) {
+                            ForEach(ThemeMode.allCases, id: \.self) { mode in
+                                Text(mode.localizedName).tag(mode)
                             }
                         }
                         .labelsHidden()

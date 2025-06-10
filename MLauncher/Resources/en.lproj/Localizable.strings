@@ -64,4 +64,21 @@
 "settings.minecraft_versions_url.placeholder" = "Enter Minecraft Versions URL";
 "settings.modrinth_api_url.placeholder" = "Enter Modrinth API URL";
 "settings.default_java_path.placeholder" = "Enter Default Java Path";
-"settings.player.placeholder" = "Player settings will go here."; 
+"settings.player.placeholder" = "Player settings will go here.";
+
+// Theme Settings
+"settings.theme.title" = "Theme Settings";
+"settings.theme.picker" = "Select Theme";
+"settings.theme.system" = "System";
+"settings.theme.light" = "Light";
+"settings.theme.dark" = "Dark";
+
+// Version table columns
+"versions.name" = "Version";
+"versions.game_versions" = "Game Versions";
+"versions.loaders" = "Loaders";
+"versions.type" = "Type";
+"versions.downloads" = "Downloads";
+"versions.date" = "Published";
+"versions.loading" = "Loading versions...";
+"versions.platforms" = "Platforms"; 

@@ -18,10 +18,13 @@ struct ContentView: View {
     @State private var refreshID = UUID()
     @Binding var selectProjectId: String?
     @Binding var loadedProjectDetail: ModrinthProjectDetail?
+    @EnvironmentObject var gameRepository: GameRepository
     var body: some View {
         switch selectedItem {
         case .game(let gameId):
-            GameContentView(gameId: gameId)
+            List {
+                GameInfoContentView(game: gameRepository.getGame(by: gameId))
+            }
         case .resource(let type):
             List {
                 if let projectId = selectProjectId {
@@ -41,10 +44,6 @@ struct ContentView: View {
                     }
                 }
             }
-            
         }
     }
-    
-    
 }
-

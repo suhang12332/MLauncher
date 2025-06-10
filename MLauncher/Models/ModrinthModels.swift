@@ -226,3 +226,134 @@ struct License: Codable {
     let name: String
     let url: String?
 }
+
+/// Modrinth version model
+public struct ModrinthProjectDetailVersion: Codable, Identifiable {
+    /// Game versions this version supports
+    public let gameVersions: [String]
+    
+    /// Loaders this version supports
+    public let loaders: [String]
+    
+    /// Version ID
+    public let id: String
+    
+    /// Project ID
+    public let projectId: String
+    
+    /// Author ID
+    public let authorId: String
+    
+    /// Whether this version is featured
+    public let featured: Bool
+    
+    /// Version name
+    public let name: String
+    
+    /// Version number
+    public let versionNumber: String
+    
+    /// Version changelog
+    public let changelog: String?
+    
+    /// URL to changelog
+    public let changelogUrl: String?
+    
+    /// Date published
+    public let datePublished: Date
+    
+    /// Number of downloads
+    public let downloads: Int
+    
+    /// Version type (release, beta, alpha)
+    public let versionType: String
+    
+    /// Version status
+    public let status: String
+    
+    /// Requested status
+    public let requestedStatus: String?
+    
+    /// Version files
+    public let files: [ModrinthVersionFile]
+    
+    /// Version dependencies
+    public let dependencies: [ModrinthVersionDependency]
+    
+    enum CodingKeys: String, CodingKey {
+        case gameVersions = "game_versions"
+        case loaders
+        case id
+        case projectId = "project_id"
+        case authorId = "author_id"
+        case featured
+        case name
+        case versionNumber = "version_number"
+        case changelog
+        case changelogUrl = "changelog_url"
+        case datePublished = "date_published"
+        case downloads
+        case versionType = "version_type"
+        case status
+        case requestedStatus = "requested_status"
+        case files
+        case dependencies
+    }
+}
+
+/// Modrinth version file model
+public struct ModrinthVersionFile: Codable {
+    /// File hashes
+    public let hashes: ModrinthVersionFileHashes
+    
+    /// File URL
+    public let url: String
+    
+    /// File name
+    public let filename: String
+    
+    /// Whether this is the primary file
+    public let primary: Bool
+    
+    /// File size in bytes
+    public let size: Int
+    
+    /// File type
+    public let fileType: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case hashes
+        case url
+        case filename
+        case primary
+        case size
+        case fileType = "file_type"
+    }
+}
+
+/// Modrinth version file hashes model
+public struct ModrinthVersionFileHashes: Codable {
+    /// SHA512 hash
+    public let sha512: String
+    
+    /// SHA1 hash
+    public let sha1: String
+}
+
+/// Modrinth version dependency model
+public struct ModrinthVersionDependency: Codable {
+    /// Project ID
+    public let projectId: String?
+    
+    /// Version ID
+    public let versionId: String?
+    
+    /// Dependency type
+    public let dependencyType: String
+    
+    enum CodingKeys: String, CodingKey {
+        case projectId = "project_id"
+        case versionId = "version_id"
+        case dependencyType = "dependency_type"
+    }
+}
