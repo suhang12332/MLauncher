@@ -24,6 +24,7 @@ struct MainView: View {
     @State private var selectedFeatures: [String] = []
     @State private var selectedResolutions: [String] = []
     @State private var selectedPerformanceImpact: [String] = []
+    @State private var selectedLoaders: [String] = []
     @State private var selectedProjectId: String?
     @State private var loadedProjectDetail: ModrinthProjectDetail? = nil
     @State private var selectedTab = 0
@@ -32,6 +33,7 @@ struct MainView: View {
     @State private var versionTotal: Int = 0
     @State private var gameResourcesType = "mod"
     @State private var searchText: String = ""
+    @State private var gameResourcesLocation = "local"
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             // 侧边栏
@@ -48,11 +50,14 @@ struct MainView: View {
                 selectedResolutions: $selectedResolutions,
                 selectedPerformanceImpact: $selectedPerformanceImpact,
                 selectProjectId: $selectedProjectId,
-                loadedProjectDetail: $loadedProjectDetail
+                loadedProjectDetail: $loadedProjectDetail,
+                gameResourcesType: $gameResourcesType,
+                selectedLoaders: $selectedLoaders,
+                gameResourcesLocation: $gameResourcesLocation
             )
             .toolbar {
                 ContentToolbarView()
-            }.navigationSplitViewColumnWidth(min: 235, ideal: 240, max: .infinity)
+            }.navigationSplitViewColumnWidth(min: 235, ideal: 240, max: 250)
         } detail: {
             DetailView(
                 selectedItem: selectedItem,
@@ -70,7 +75,9 @@ struct MainView: View {
                 selectTab: $selectedTab,
                 versionCurrentPage: $versionCurrentPage,
                 versionTotal: $versionTotal,
-                searchText: $searchText
+                searchText: $searchText,
+                gameResourcesLocation: $gameResourcesLocation,
+                selectedLoader: $selectedLoaders
             )
             .toolbar {
                 
@@ -78,6 +85,7 @@ struct MainView: View {
                     selectedItem: selectedItem,
                     sortIndex: $sortIndex,
                     gameResourcesType: $gameResourcesType,
+                    resourceType: $gameResourcesLocation,
                     currentPage: $currentPage,
                     versionCurrentPage: $versionCurrentPage,
                     versionTotal: $versionTotal,
@@ -85,37 +93,43 @@ struct MainView: View {
                     project: $loadedProjectDetail,
                     selectProjectId: $selectedProjectId,
                     selectedTab: $selectedTab,
-                    searchText: $searchText
+                    searchText: $searchText,
+                    
                 )
             }
 
         }
         .onChange(of: selectedItem) { _, newValue in
             if case .resource(_) = newValue {
-                sortIndex = "relevance"
-                gameResourcesType = "mod"
-                currentPage = 1
-                totalItems = 0
-                selectedVersions = []
-                selectedLicenses = []
-                selectedCategories = []
-                selectedFeatures = []
-                selectedResolutions = []
-                selectedPerformanceImpact = []
-                selectedProjectId = nil
-                // Reset loaded project detail when selected item changes
-                loadedProjectDetail = nil
-                selectedTab = 0
-                versionCurrentPage = 1
-                versionTotal = 0
-                searchText = ""
+                resetResourceFilters()
             }
         }
         .onChange(of: selectedProjectId) { _, _ in
             // Reset loaded project detail when selected project changes
             loadedProjectDetail = nil
         }
+        
         .preferredColorScheme(theme.colorScheme)
+    }
+    private func resetResourceFilters() {
+        sortIndex = "relevance"
+        gameResourcesType = "mod"
+        currentPage = 1
+        totalItems = 0
+        selectedVersions = []
+        selectedLicenses = []
+        selectedCategories = []
+        selectedFeatures = []
+        selectedResolutions = []
+        selectedPerformanceImpact = []
+        selectedLoaders = []
+        selectedProjectId = nil
+        loadedProjectDetail = nil
+        selectedTab = 0
+        versionCurrentPage = 1
+        versionTotal = 0
+        searchText = ""
+        gameResourcesLocation = "local"
     }
 }
 

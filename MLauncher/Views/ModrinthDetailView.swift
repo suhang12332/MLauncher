@@ -14,6 +14,8 @@ struct ModrinthDetailView: View {
     @Binding var selectedPerformanceImpact: [String]
     @Binding var selectedProjectId: String?
     @Binding var searchText: String
+    @Binding var selectedLoader: [String]
+    let gameInfo: GameVersionInfo?
     
     @StateObject private var viewModel = ModrinthSearchViewModel()
     @State private var hasLoaded = false
@@ -74,7 +76,11 @@ struct ModrinthDetailView: View {
             currentPage = 1
             Task { await performSearch() }
         }
-        
+        .onChange(of: selectedLoader) { _, _ in
+            currentPage = 1
+            Task { await performSearch() }
+        }
+
         .refreshable {
             await performSearch()
         }
@@ -102,7 +108,8 @@ struct ModrinthDetailView: View {
             categories: selectedCategories,
             features: selectedFeatures,
             resolutions: selectedResolutions,
-            performanceImpact: selectedPerformanceImpact
+            performanceImpact: selectedPerformanceImpact,
+            loaders: selectedLoader
         )
     }
     
@@ -111,16 +118,22 @@ struct ModrinthDetailView: View {
     
    
     
-    private var resultList: some View {
+    public var resultList: some View {
         ForEach(viewModel.results, id: \.projectId) { mod in
-            ModrinthDetailCardView(mod: mod)
-                .padding(.vertical, ModrinthConstants.UI.verticalPadding)
-                .listRowInsets(
-                    EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
-                )
-                .onTapGesture {
-                    selectedProjectId = mod.projectId
-                }
+            ModrinthDetailCardView(
+                project: mod,
+                selectedVersions: selectedVersions,
+                selectedLoaders: selectedLoader,
+                gameInfo: gameInfo,
+                query: query
+            )
+            .padding(.vertical, ModrinthConstants.UI.verticalPadding)
+            .listRowInsets(
+                EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
+            )
+            .onTapGesture {
+                selectedProjectId = mod.projectId
+            }
         }
     }
 }

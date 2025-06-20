@@ -9,6 +9,8 @@
 // Time Format
 "time.hours_minutes" = "%d小时%d分钟";
 
+"addgame" = "添加游戏";
+
 // Player Status
 "player.status.playing" = "正在游玩";
 "player.status.last_played" = "最后游玩：%@";
@@ -52,6 +54,8 @@
 "resource.content.type.shader" = "光影";
 "resource.content.type.resourcepack" = "资源包";
 "resource.content.type.modpack" = "整合包";
+"resource.content.type.server" = "资源库";
+"resource.content.type.local" = "已安装";
 
 // 语言选择
 "language.zh-Hans" = "简体中文";
@@ -105,6 +109,7 @@
 "filter.version" = "游戏版本";
 "filter.category" = "分类";
 "filter.environment" = "环境";
+"filter.loader" = "加载器";
 "filter.behavior" = "行为";
 "filter.performance" = "性能要求";
 "filter.resolutions" = "分辨率";

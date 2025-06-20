@@ -16,22 +16,34 @@ struct CategoryContentView: View {
     @Binding var selectedResolutions: [String]
     @Binding var selectedPerformanceImpacts: [String]
     @Binding var selectedVersions: [String]
+    @Binding var selectedLoaders: [String]
+    let type: String
+    let gameVersion: String?
+    let gameLoader: String?
 
     // MARK: - Initialization
     init(
         project: String,
+        type: String,
         selectedCategories: Binding<[String]>,
         selectedFeatures: Binding<[String]>,
         selectedResolutions: Binding<[String]>,
         selectedPerformanceImpacts: Binding<[String]>,
-        selectedVersions: Binding<[String]>
+        selectedVersions: Binding<[String]>,
+        selectedLoaders: Binding<[String]>,
+        gameVersion: String? = nil,
+        gameLoader: String? = nil
     ) {
         self.project = project
+        self.type = type
         self._selectedCategories = selectedCategories
         self._selectedFeatures = selectedFeatures
         self._selectedResolutions = selectedResolutions
         self._selectedPerformanceImpacts = selectedPerformanceImpacts
         self._selectedVersions = selectedVersions
+        self._selectedLoaders = selectedLoaders
+        self.gameVersion = gameVersion
+        self.gameLoader = gameLoader
         self._viewModel = StateObject(
             wrappedValue: CategoryContentViewModel(project: project)
         )
@@ -43,13 +55,26 @@ struct CategoryContentView: View {
             if let error = viewModel.error {
                 ErrorView(error)
             } else {
-                versionSection
+                if type=="resource" {
+                    versionSection
+                }
+
                 categorySection
                 projectSpecificSections
             }
         }
         .task {
             await viewModel.loadData()
+            if let gameVersion = gameVersion {
+                selectedVersions = [gameVersion]
+            }
+            if let gameLoader = gameLoader {
+                if project != "shader" {
+                    selectedLoaders = [gameLoader]
+                }else{
+                    selectedLoaders = []
+                }
+            }
         }
     }
 
@@ -76,14 +101,49 @@ struct CategoryContentView: View {
         )
     }
 
+    private var loaderSection: some View {
+        CategorySectionView(
+            title: "filter.loader",
+            items: viewModel.loaders
+                .filter { $0.supported_project_types.contains(project) }
+                .map {
+                    FilterItem(id: $0.name, name: $0.name)
+                },
+            selectedItems: $selectedLoaders,
+            isLoading: viewModel.isLoading
+        )
+    }
+
     private var projectSpecificSections: some View {
         Group {
             switch project {
             case ProjectType.modpack, ProjectType.mod:
+                if type=="resource" {
+                    CategorySectionView(
+                        title: "filter.loader",
+                        items: viewModel.loaders
+                            .filter { $0.supported_project_types.contains(project) }
+                            .map {
+                                FilterItem(id: $0.name, name: $0.name)
+                            },
+                        selectedItems: $selectedLoaders,
+                        isLoading: viewModel.isLoading
+                    )
+                }
                 environmentSection
             case ProjectType.resourcepack:
                 resourcePackSections
             case ProjectType.shader:
+                CategorySectionView(
+                    title: "filter.loader",
+                    items: viewModel.loaders
+                        .filter { $0.supported_project_types.contains(project) }
+                        .map {
+                            FilterItem(id: $0.name, name: $0.name)
+                        },
+                    selectedItems: $selectedLoaders,
+                    isLoading: viewModel.isLoading
+                )
                 shaderSections
             default:
                 EmptyView()

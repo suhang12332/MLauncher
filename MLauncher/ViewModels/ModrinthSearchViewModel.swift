@@ -65,6 +65,7 @@ final class ModrinthSearchViewModel: ObservableObject {
     ///   - features: 特性列表
     ///   - resolutions: 分辨率列表
     ///   - performanceImpact: 性能影响列表
+    ///   - loaders: 加载器列表
     func search(
         projectType: String,
         page: Int = 1,
@@ -74,7 +75,8 @@ final class ModrinthSearchViewModel: ObservableObject {
         categories: [String] = [],
         features: [String] = [],
         resolutions: [String] = [],
-        performanceImpact: [String] = []
+        performanceImpact: [String] = [],
+        loaders: [String] = []
     ) async {
         // Cancel any existing search task
         searchTask?.cancel()
@@ -91,7 +93,8 @@ final class ModrinthSearchViewModel: ObservableObject {
                     categories: categories,
                     features: features,
                     resolutions: resolutions,
-                    performanceImpact: performanceImpact
+                    performanceImpact: performanceImpact,
+                    loaders: loaders
                 )
                 
                 let result = try await ModrinthService.searchProjects(
@@ -126,7 +129,8 @@ final class ModrinthSearchViewModel: ObservableObject {
         categories: [String],
         features: [String],
         resolutions: [String],
-        performanceImpact: [String]
+        performanceImpact: [String],
+        loaders: [String]
     ) -> [[String]] {
         var facets: [[String]] = []
         
@@ -154,16 +158,19 @@ final class ModrinthSearchViewModel: ObservableObject {
             facets.append(serverFacets)
         }
         
-        // Add resolutions if any
+        // Add resolutions if any (as categories)
         if !resolutions.isEmpty {
-            facets.append(resolutions.map { "\(ModrinthConstants.API.FacetType.resolutions):\($0)" })
+            facets.append(resolutions.map { "categories:\($0)" })
         }
-        
-        // Add performance impact if any
+
+        // Add performance impact if any (as categories)
         if !performanceImpact.isEmpty {
-            facets.append(
-                performanceImpact.map { "\(ModrinthConstants.API.FacetType.performanceImpact):\($0)" }
-            )
+            facets.append(performanceImpact.map { "categories:\($0)" })
+        }
+
+        // Add loaders if any (as categories)
+        if !loaders.isEmpty {
+            facets.append(loaders.map { "categories:\($0)" })
         }
         
         return facets

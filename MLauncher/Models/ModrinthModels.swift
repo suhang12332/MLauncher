@@ -22,6 +22,7 @@ struct ModrinthProject: Codable {
     let serverSide: String
     let gallery: [String]?
     let featuredGallery: String?
+    let type: String?
     let color: Int?
 
     enum CodingKeys: String, CodingKey {
@@ -40,6 +41,7 @@ struct ModrinthProject: Codable {
         case gallery
         case featuredGallery = "featured_gallery"
         case color
+        case type
     }
 }
 

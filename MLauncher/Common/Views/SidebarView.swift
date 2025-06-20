@@ -59,7 +59,7 @@ public struct SidebarView: View {
                             Text(game.gameName)
                                 .lineLimit(1)
                         }
-                        .padding(.leading, 2.5)
+//                        .padding(.leading, 2.5)
                         .tag(game.id)  // Tag with game ID
                     }
                     

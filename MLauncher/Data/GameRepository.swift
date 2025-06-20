@@ -50,6 +50,154 @@ class GameRepository: ObservableObject {
         return games.first { $0.id == id }
     }
 
+    /// 根据 ID 更新游戏信息
+    /// - Parameter game: 新的游戏信息
+    /// - Returns: 是否更新成功
+    func updateGame(_ game: GameVersionInfo) -> Bool {
+        guard let index = games.firstIndex(where: { $0.id == game.id }) else {
+            Logger.shared.warning("找不到要更新的游戏：\(game.id)")
+            return false
+        }
+        
+        games[index] = game
+        saveGames()
+        return true
+    }
+    
+    /// 根据 ID 更新游戏状态
+    /// - Parameters:
+    ///   - id: 游戏 ID
+    ///   - isRunning: 是否正在运行
+    ///   - lastPlayed: 最后游玩时间
+    /// - Returns: 是否更新成功
+    func updateGameStatus(id: String, isRunning: Bool, lastPlayed: Date = Date()) -> Bool {
+        guard let index = games.firstIndex(where: { $0.id == id }) else {
+            Logger.shared.warning("找不到要更新状态的游戏：\(id)")
+            return false
+        }
+        
+        var game = games[index]
+        game.isRunning = isRunning
+        game.lastPlayed = lastPlayed
+        games[index] = game
+        saveGames()
+        return true
+    }
+
+    /// 更新 Java 路径
+    /// - Parameters:
+    ///   - id: 游戏 ID
+    ///   - javaPath: 新的 Java 路径
+    /// - Returns: 是否更新成功
+    func updateJavaPath(id: String, javaPath: String) -> Bool {
+        guard let index = games.firstIndex(where: { $0.id == id }) else {
+            Logger.shared.warning("找不到要更新 Java 路径的游戏：\(id)")
+            return false
+        }
+        
+        var game = games[index]
+        game.javaPath = javaPath
+        games[index] = game
+        saveGames()
+        return true
+    }
+    
+    /// 更新 JVM 启动参数
+    /// - Parameters:
+    ///   - id: 游戏 ID
+    ///   - jvmArguments: 新的 JVM 参数
+    /// - Returns: 是否更新成功
+    func updateJvmArguments(id: String, jvmArguments: String) -> Bool {
+        guard let index = games.firstIndex(where: { $0.id == id }) else {
+            Logger.shared.warning("找不到要更新 JVM 参数的游戏：\(id)")
+            return false
+        }
+        
+        var game = games[index]
+        game.jvmArguments = jvmArguments
+        games[index] = game
+        saveGames()
+        return true
+    }
+    
+    /// 更新运行内存大小
+    /// - Parameters:
+    ///   - id: 游戏 ID
+    ///   - memorySize: 新的内存大小（MB）
+    /// - Returns: 是否更新成功
+    func updateMemorySize(id: String, memorySize: Int) -> Bool {
+        guard let index = games.firstIndex(where: { $0.id == id }) else {
+            Logger.shared.warning("找不到要更新内存大小的游戏：\(id)")
+            return false
+        }
+        
+        var game = games[index]
+        game.runningMemorySize = memorySize
+        games[index] = game
+        saveGames()
+        return true
+    }
+    
+    /// 更新游戏资源列表
+    /// - Parameters:
+    ///   - id: 游戏 ID
+    ///   - resources: 新的资源列表
+    /// - Returns: 是否更新成功
+    func updateResources(id: String, resources: [ModrinthProject]) -> Bool {
+        guard let index = games.firstIndex(where: { $0.id == id }) else {
+            Logger.shared.warning("找不到要更新资源列表的游戏：\(id)")
+            return false
+        }
+        
+        var game = games[index]
+        game.resources = resources
+        games[index] = game
+        saveGames()
+        return true
+    }
+    
+    /// 添加单个游戏资源
+    /// - Parameters:
+    ///   - id: 游戏 ID
+    ///   - resource: 要添加的资源
+    /// - Returns: 是否添加成功
+    func addResource(id: String, resource: ModrinthProject) -> Bool {
+        guard let index = games.firstIndex(where: { $0.id == id }) else {
+            Logger.shared.warning("找不到要添加资源的游戏：\(id)")
+            return false
+        }
+        
+        var game = games[index]
+        if !game.resources.contains(where: { $0.projectId == resource.projectId }) {
+            game.resources.append(resource)
+            games[index] = game
+            saveGames()
+            return true
+        }
+        return false
+    }
+    
+    /// 移除单个游戏资源
+    /// - Parameters:
+    ///   - id: 游戏 ID
+    ///   - resourceId: 要移除的资源 ID
+    /// - Returns: 是否移除成功
+    func removeResource(id: String, resourceId: String) -> Bool {
+        guard let index = games.firstIndex(where: { $0.id == id }) else {
+            Logger.shared.warning("找不到要移除资源的游戏：\(id)")
+            return false
+        }
+        
+        var game = games[index]
+        if let resourceIndex = game.resources.firstIndex(where: { $0.projectId == resourceId }) {
+            game.resources.remove(at: resourceIndex)
+            games[index] = game
+            saveGames()
+            return true
+        }
+        return false
+    }
+
     // MARK: - Private Methods
 
     /// 从 UserDefaults 加载游戏列表

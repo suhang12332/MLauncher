@@ -18,6 +18,7 @@ final class CategoryContentViewModel: ObservableObject {
     @Published private(set) var versions: [GameVersion] = []
     @Published private(set) var isLoading: Bool = true
     @Published private(set) var error: Error?
+    @Published private(set) var loaders: [Loader] = []
     
     // MARK: - Private Properties
     private var lastFetchTime: Date?
@@ -61,9 +62,9 @@ final class CategoryContentViewModel: ObservableObject {
         do {
             async let categoriesTask = ModrinthService.fetchCategories()
             async let versionsTask = ModrinthService.fetchGameVersions()
-            
-            let (categoriesResult, versionsResult) = try await (categoriesTask, versionsTask)
-            await processFetchedData(categories: categoriesResult, versions: versionsResult)
+            async let loadersTask = ModrinthService.fetchLoaders()
+            let (categoriesResult, versionsResult,loadersResult) = try await (categoriesTask, versionsTask,loadersTask)
+            await processFetchedData(categories: categoriesResult, versions: versionsResult,loaders: loadersResult)
         } catch {
             handleError(error)
         }
@@ -71,7 +72,7 @@ final class CategoryContentViewModel: ObservableObject {
         isLoading = false
     }
     
-    private func processFetchedData(categories: [Category], versions: [GameVersion]) async {
+    private func processFetchedData(categories: [Category], versions: [GameVersion],loaders: [Loader]) async {
         let filteredVersions = versions
             .filter { $0.version_type == "release" }
             .sorted { $0.date > $1.date }
@@ -86,6 +87,7 @@ final class CategoryContentViewModel: ObservableObject {
             self.resolutions = filteredCategories.filter { $0.header == CategoryHeader.resolutions }
             self.performanceImpacts = filteredCategories.filter { $0.header == CategoryHeader.performanceImpact }
             self.lastFetchTime = Date()
+            self.loaders = loaders
         }
     }
     
@@ -102,5 +104,8 @@ final class CategoryContentViewModel: ObservableObject {
         resolutions.removeAll()
         performanceImpacts.removeAll()
         versions.removeAll()
+        loaders.removeAll()
     }
+    
+    
 } 

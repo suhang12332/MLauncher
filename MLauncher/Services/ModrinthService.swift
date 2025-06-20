@@ -50,7 +50,6 @@ enum ModrinthService {
         )
         return try JSONDecoder().decode([Category].self, from: data)
     }
-
     
 
     static func fetchGameVersions() async throws -> [GameVersion] {
@@ -83,5 +82,20 @@ enum ModrinthService {
         dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
         return try decoder.decode([ModrinthProjectDetailVersion].self, from: data)
+    }
+    
+    static func fetchProjectVersionsFilter(
+        id: String,
+        selectedVersions: [String],
+        selectedLoaders: [String]
+    ) async throws -> [ModrinthProjectDetailVersion] {
+        let versions = try await fetchProjectVersions(id: id)
+        return versions.filter { version in
+            // 至少有一个版本匹配
+            let versionMatch = selectedVersions.isEmpty || !Set(version.gameVersions).isDisjoint(with: selectedVersions)
+            // 至少有一个loader匹配
+            let loaderMatch = selectedLoaders.isEmpty || !Set(version.loaders).isDisjoint(with: selectedLoaders)
+            return versionMatch && loaderMatch
+        }
     }
 }

@@ -25,6 +25,8 @@ struct DetailView: View {
     @Binding var versionCurrentPage: Int
     @Binding var versionTotal: Int
     @Binding var searchText: String
+    @Binding var gameResourcesLocation: String
+    @Binding var selectedLoader: [String]
     @EnvironmentObject var gameRepository: GameRepository
     var body: some View {
         switch selectedItem {
@@ -41,7 +43,10 @@ struct DetailView: View {
                                        selectedResolutions: $selectedResolutions,
                                        selectedPerformanceImpact: $selectedPerformanceImpact,
                                        selectedProjectId: $selectedProjectId,
-                                       searchText: $searchText)
+                                       searchText: $searchText,
+                                       selectedLoaders: $selectedLoader,
+                                       gameType: $gameResourcesLocation
+                    )
                     .padding()
                     
                 }.listStyle(.plain)
@@ -68,7 +73,9 @@ struct DetailView: View {
                         selectedResolutions: $selectedResolutions,
                         selectedPerformanceImpact: $selectedPerformanceImpact,
                         selectedProjectId: $selectedProjectId,
-                        searchText: $searchText
+                        searchText: $searchText,
+                        selectedLoader: $selectedLoader,
+                        gameInfo: nil
                     )
                     .padding()
                 }

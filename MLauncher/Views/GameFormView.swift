@@ -546,19 +546,6 @@ struct GameFormView: View {
             downloadState.reset()
         }
         
-        let gameInfo = GameVersionInfo(
-            gameName: gameName,
-            gameIcon: gameIcon,
-            gameVersion: selectedGameVersion,
-            modLoader: selectedModLoader,
-            isUserAdded: true,
-            createdAt: Date(),
-            lastPlayed: Date(),
-            isRunning: false
-        )
-        
-        Logger.shared.info("保存游戏信息：\(gameInfo.gameName) (版本: \(gameInfo.gameVersion))")
-
         guard
             let mojangVersion = mojangVersions.first(where: { $0.id == selectedGameVersion })
         else {
@@ -569,14 +556,32 @@ struct GameFormView: View {
             return
         }
         
+        var gameInfo = GameVersionInfo(
+            gameName: gameName,
+            gameIcon: gameIcon,
+            gameVersion: selectedGameVersion,
+            assetIndex: "",
+            modLoader: selectedModLoader,
+            isUserAdded: true,
+            createdAt: Date(),
+            lastPlayed: Date(),
+            isRunning: false
+        )
+        
+        Logger.shared.info("保存游戏信息：\(gameInfo.gameName) (版本: \(gameInfo.gameVersion), 资源索引: \(gameInfo.assetIndex))")
+
         do {
             let downloadedManifest = try await fetchMojangManifest(from: mojangVersion.url)
             let fileManager = try await setupFileManager(manifest: downloadedManifest, modLoader: gameInfo.modLoader)
-            
             try await startDownloadProcess(fileManager: fileManager, manifest: downloadedManifest)
             
             // Add the game to storage only if download completed without cancellation
             try Task.checkCancellation() // Check cancellation one last time before saving
+            
+            // 更新资源索引版本
+            gameInfo.assetIndex = downloadedManifest.assetIndex.id
+            Logger.shared.info("更新资源索引版本：\(gameInfo.assetIndex)")
+            
             gameRepository.addGame(gameInfo)
             
             // Send success notification
@@ -615,8 +620,26 @@ struct GameFormView: View {
         let appName = Bundle.main.infoDictionary?["CFBundleName"] as? String ?? Constants.defaultAppName
         let launcherSupportDirectory = applicationSupportDirectory.appendingPathComponent(appName)
         let metaDirectory = launcherSupportDirectory.appendingPathComponent("meta")
-        let profileDirectoryName = "\(manifest.id)-\(modLoader)"
-        let profileDirectory = launcherSupportDirectory.appendingPathComponent("profiles").appendingPathComponent(profileDirectoryName)
+        let profileDirectory = launcherSupportDirectory.appendingPathComponent("profiles").appendingPathComponent(gameName)
+
+        // 创建必要的子目录
+        let subdirectories = [
+            "crash-reports",
+            "datapacks",
+            "mods",
+            "resourcepacks",
+            "shaderpacks"
+        ]
+        
+        for subdirectory in subdirectories {
+            let subdirectoryURL = profileDirectory.appendingPathComponent(subdirectory)
+            try FileManager.default.createDirectory(at: subdirectoryURL, withIntermediateDirectories: true)
+            Logger.shared.info("创建目录：\(subdirectoryURL.path)")
+        }
+        // 新增：在 metaDirectory 下创建 natives 文件夹
+        let nativesDir = metaDirectory.appendingPathComponent("natives")
+        try FileManager.default.createDirectory(at: nativesDir, withIntermediateDirectories: true)
+        Logger.shared.info("创建目录：\(nativesDir.path)")
 
         return MinecraftFileManager(metaDirectory: metaDirectory, profileDirectory: profileDirectory)
     }
@@ -738,9 +761,3 @@ private struct FormInputField: View {
     }
 }
 
-// MARK: - Preview
-struct GameFormView_Previews: PreviewProvider {
-    static var previews: some View {
-        GameFormView()
-    }
-}

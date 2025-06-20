@@ -7,13 +7,15 @@ public struct DetailToolbarView: ToolbarContent {
     @EnvironmentObject var playerListViewModel: PlayerListViewModel  // Get the shared view model
     @Binding var sortIndex: String
     @Binding var gameResourcesType: String
+    @Binding var resourceType: String
     @Binding var currentPage: Int
 
     @Binding var versionCurrentPage: Int
     @Binding var versionTotal: Int
-
+    @EnvironmentObject var gameRepository: GameRepository
     let totalItems: Int
 
+    
 
     @Binding var project: ModrinthProjectDetail?
     @Binding var selectProjectId: String?
@@ -38,12 +40,46 @@ public struct DetailToolbarView: ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {
             switch selectedItem {
             case .game(let gameId):
-                sortMenu
-                resourcesMenu
+                if let game = gameRepository.getGame(by: gameId) {
+                    if "local" != resourceType {
+                        sortMenu
+                    }
+                    resourcesMenu
+                    resourcesTypeMenu
+                    if "local" != resourceType {
+                        paginationControls
+                    }
                     
-                paginationControls
+                    
+                    Spacer()
+                  
+                    .help("player.add".localized())
+
+                    Button(action: {
+                        
+                        Task {
+                            await MinecraftLaunchCommand(player: playerListViewModel.currentPlayer, game: game, gameRepository: gameRepository).launchGame()
+                        }
+                    }) {
+                        Label(
+                            "play.fill".localized(),
+                            systemImage: "play.fill"
+                        )
+                    }
+                    .disabled(game.isRunning)
+                    Button(action: {
+                        
+//
+                    }) {
+                        Label(
+                            "play.fill".localized(),
+                            systemImage: "folder"
+                        )
+                    }
+                   
+//                    Spacer()
+                }
                 
-                Spacer()
             case .resource:
                 if selectProjectId != nil {
                     ModrinthProjectDetailToolbarView(
@@ -53,6 +89,7 @@ public struct DetailToolbarView: ToolbarContent {
                         versionTotal: $versionTotal,
                         onBack: {
                             selectProjectId = nil
+                            selectedTab = 0
                         }
                     )
                 } else {
@@ -70,6 +107,10 @@ public struct DetailToolbarView: ToolbarContent {
     }
     private var currentResourceTitle: String {
         "resource.content.type.\(gameResourcesType)".localized()
+    }
+    
+    private var currentResourceTypeTitle: String {
+        "resource.content.type.\(resourceType)".localized()
     }
     
     private var sortMenu: some View {
@@ -103,6 +144,23 @@ public struct DetailToolbarView: ToolbarContent {
             }
         } label: {
             Text(currentResourceTitle)
+        }
+        .help("player.add".localized())
+    }
+    private var resourcesTypeMenu: some View {
+        Menu {
+            ForEach(
+                ["local", "server"],
+                id: \.self
+            ) { sort in
+                Button(
+                    "resource.content.type.\(sort)".localized()
+                ) {
+                    resourceType = sort
+                }
+            }
+        } label: {
+            Text(currentResourceTypeTitle)
         }
         .help("player.add".localized())
     }

@@ -7,9 +7,12 @@
 
 import Foundation
 
+
+
+
 /// 游戏版本信息模型
 /// 用于存储和管理游戏版本的相关信息，包括启动配置等
-struct GameVersionInfo: Codable, Equatable, Identifiable {
+struct GameVersionInfo: Codable, Identifiable {
     /// 游戏版本唯一标识符
     let id: String
     
@@ -21,6 +24,9 @@ struct GameVersionInfo: Codable, Equatable, Identifiable {
     
     /// 游戏版本号
     let gameVersion: String
+    
+    /// 资源索引版本
+    var assetIndex: String
     
     /// 模组加载器类型（如 Forge、Fabric 等）
     let modLoader: String
@@ -50,6 +56,9 @@ struct GameVersionInfo: Codable, Equatable, Identifiable {
     
     /// 运行内存大小 (MB)
     var runningMemorySize: Int
+    
+    /// 游戏资源列表
+    var resources: [ModrinthProject]
 
     /// 初始化游戏版本信息
     /// - Parameters:
@@ -57,6 +66,7 @@ struct GameVersionInfo: Codable, Equatable, Identifiable {
     ///   - gameName: 游戏名称
     ///   - gameIcon: 游戏图标路径
     ///   - gameVersion: 游戏版本号
+    ///   - assetIndex: 资源索引版本
     ///   - modLoader: 模组加载器类型
     ///   - isUserAdded: 是否用户手动添加
     ///   - createdAt: 创建时间，默认当前时间
@@ -66,11 +76,13 @@ struct GameVersionInfo: Codable, Equatable, Identifiable {
     ///   - jvmArguments: JVM参数，默认空字符串
     ///   - launchCommand: 启动命令，默认空字符串
     ///   - runningMemorySize: 运行内存大小 (MB)，默认 2048
+    ///   - resources: 游戏资源列表，默认空数组
     init(
         id: UUID = UUID(),
         gameName: String,
         gameIcon: String,
         gameVersion: String,
+        assetIndex: String,
         modLoader: String,
         isUserAdded: Bool,
         createdAt: Date = Date(),
@@ -79,12 +91,14 @@ struct GameVersionInfo: Codable, Equatable, Identifiable {
         javaPath: String = "",
         jvmArguments: String = "",
         launchCommand: String = "",
-        runningMemorySize: Int = 2048
+        runningMemorySize: Int = 2048,
+        resources: [ModrinthProject] = []
     ) {
         self.id = id.uuidString
         self.gameName = gameName
         self.gameIcon = gameIcon
         self.gameVersion = gameVersion
+        self.assetIndex = assetIndex
         self.modLoader = modLoader
         self.isUserAdded = isUserAdded
         self.createdAt = createdAt
@@ -94,5 +108,6 @@ struct GameVersionInfo: Codable, Equatable, Identifiable {
         self.jvmArguments = jvmArguments
         self.launchCommand = launchCommand
         self.runningMemorySize = runningMemorySize
+        self.resources = resources
     }
 } 

@@ -2,7 +2,19 @@ import SwiftUI
 
 struct ModrinthDetailCardView: View {
     // MARK: - Properties
-    let mod: ModrinthProject
+    var project: ModrinthProject
+    let selectedVersions: [String]
+    let selectedLoaders: [String]
+    let gameInfo: GameVersionInfo?
+    let query: String
+    
+    @State private var addButtonState: AddButtonState = .idle
+    enum AddButtonState {
+        case idle
+        case loading
+        case installed
+    }
+    @EnvironmentObject private var gameRepository: GameRepository
     
     // MARK: - Body
     var body: some View {
@@ -22,7 +34,7 @@ struct ModrinthDetailCardView: View {
     // MARK: - View Components
     private var iconView: some View {
         Group {
-            if let iconUrl = mod.iconUrl, let url = URL(string: iconUrl) {
+            if let iconUrl = project.iconUrl, let url = URL(string: iconUrl) {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:
@@ -54,10 +66,10 @@ struct ModrinthDetailCardView: View {
     
     private var titleView: some View {
         HStack(spacing: 4) {
-            Text(mod.title)
+            Text(project.title)
                 .font(.headline)
                 .lineLimit(1)
-            Text("by \(mod.author)")
+            Text("by \(project.author)")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .lineLimit(1)
@@ -65,7 +77,7 @@ struct ModrinthDetailCardView: View {
     }
     
     private var descriptionView: some View {
-        Text(mod.description)
+        Text(project.description)
             .font(.subheadline)
             .lineLimit(ModrinthConstants.UI.descriptionLineLimit)
             .foregroundColor(.secondary)
@@ -74,7 +86,7 @@ struct ModrinthDetailCardView: View {
     private var tagsView: some View {
         HStack(spacing: ModrinthConstants.UI.spacing) {
             ForEach(
-                Array(mod.displayCategories.prefix(ModrinthConstants.UI.maxTags)),
+                Array(project.displayCategories.prefix(ModrinthConstants.UI.maxTags)),
                 id: \.self
             ) { tag in
                 Text(tag)
@@ -84,8 +96,8 @@ struct ModrinthDetailCardView: View {
                     .background(Color.gray.opacity(0.15))
                     .cornerRadius(ModrinthConstants.UI.tagCornerRadius)
             }
-            if mod.displayCategories.count > ModrinthConstants.UI.maxTags {
-                Text("+\(mod.displayCategories.count - ModrinthConstants.UI.maxTags)")
+            if project.displayCategories.count > ModrinthConstants.UI.maxTags {
+                Text("+\(project.displayCategories.count - ModrinthConstants.UI.maxTags)")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
@@ -104,7 +116,7 @@ struct ModrinthDetailCardView: View {
         HStack(spacing: 2) {
             Image(systemName: "arrow.down.circle")
                 .imageScale(.small)
-            Text("\(Self.formatNumber(mod.downloads))")
+            Text("\(Self.formatNumber(project.downloads))")
         }
         .font(.caption2)
         .foregroundColor(.secondary)
@@ -114,19 +126,84 @@ struct ModrinthDetailCardView: View {
         HStack(spacing: 2) {
             Image(systemName: "heart")
                 .imageScale(.small)
-            Text("\(Self.formatNumber(mod.follows))")
+            Text("\(Self.formatNumber(project.follows))")
         }
         .font(.caption2)
         .foregroundColor(.secondary)
     }
     
     private var addButton: some View {
-        Button("+ Add") {
-            // TODO: Implement add to instance functionality
+        Button(action: {
+            guard addButtonState == .idle else { return }
+            addButtonState = .loading
+            Task {
+                do {
+                    let filteredVersions = try await ModrinthService.fetchProjectVersionsFilter(
+                        id: project.projectId,
+                        selectedVersions: selectedVersions,
+                        selectedLoaders: selectedLoaders
+                    )
+                    if let latestVersion = filteredVersions.first,
+                       let fileURL = latestVersion.files.first?.url,
+                       let gameInfo = gameInfo {
+                        _ = try await DownloadManager.downloadResource(
+                            for: gameInfo,
+                            urlString: fileURL,
+                            resourceType: query
+                        )
+                        let resourceToAdd = ModrinthProject(
+                            projectId: project.projectId,
+                            projectType: project.projectType,
+                            slug: project.slug,
+                            author: project.author,
+                            title: project.title,
+                            description: project.description,
+                            categories: project.categories,
+                            displayCategories: project.displayCategories,
+                            versions: project.versions,
+                            downloads: project.downloads,
+                            follows: project.follows,
+                            iconUrl: project.iconUrl,
+                            dateCreated: project.dateCreated,
+                            dateModified: project.dateModified,
+                            latestVersion: project.latestVersion,
+                            license: project.license,
+                            clientSide: project.clientSide,
+                            serverSide: project.serverSide,
+                            gallery: project.gallery,
+                            featuredGallery: project.featuredGallery,
+                            type: query,
+                            color: project.color
+                        )
+                        _ = gameRepository.addResource(id: gameInfo.id, resource: resourceToAdd)
+                        addButtonState = .installed
+                    } else {
+                        addButtonState = .idle
+                    }
+                } catch {
+                    print("Error fetching versions or downloading: \(error)")
+                    addButtonState = .idle
+                }
+            }
+        }) {
+            switch addButtonState {
+            case .idle:
+                Text("+ Add")
+            case .loading:
+                ProgressView()
+            case .installed:
+                Text("已安装")
+            }
         }
         .buttonStyle(.borderedProminent)
         .font(.caption2)
         .controlSize(.small)
+        .disabled(addButtonState != .idle)
+        .onAppear {
+            if let gameInfo = gameInfo, gameInfo.resources.contains(where: { $0.projectId == project.projectId }) {
+                addButtonState = .installed
+            }
+        }
     }
     
     // MARK: - Helper Methods

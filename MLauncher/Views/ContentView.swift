@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+import WebKit
 struct ContentView: View {
     let selectedItem: SidebarItem // 接收选中的侧边栏项目
     @Binding var selectedVersions: [String]
@@ -19,11 +19,39 @@ struct ContentView: View {
     @Binding var selectProjectId: String?
     @Binding var loadedProjectDetail: ModrinthProjectDetail?
     @EnvironmentObject var gameRepository: GameRepository
+    @Binding var gameResourcesType: String
+    @Binding var selectedLoaders: [String]
+    @Binding var gameResourcesLocation: String
+    
     var body: some View {
         switch selectedItem {
         case .game(let gameId):
-            List {
-                GameInfoContentView(game: gameRepository.getGame(by: gameId))
+            if let game = gameRepository.getGame(by: gameId) {
+                if "local" == gameResourcesLocation {
+                    List {
+                        HStack {
+                            MinecraftSkinRenderView()
+                        }
+                    }
+                }else{
+                    List {
+                        CategoryContentView(
+                            project: gameResourcesType,
+                            type: "game",
+                            selectedCategories: $selectedCategories,
+                            selectedFeatures: $selectedFeatures,
+                            selectedResolutions: $selectedResolutions,
+                            selectedPerformanceImpacts: $selectedPerformanceImpact,
+                            selectedVersions: $selectedVersions,
+                            selectedLoaders: $selectedLoaders,
+                            gameVersion: game.gameVersion,
+                            gameLoader: "Vanilla" == game.modLoader ? nil : game.modLoader
+                        )
+                        .id(gameResourcesType)
+                    }
+                }
+            } else {
+                Text("Game not found")
             }
         case .resource(let type):
             List {
@@ -32,14 +60,16 @@ struct ContentView: View {
                 } else {
                     CategoryContentView(
                         project: type.rawValue,
+                        type: "resource",
                         selectedCategories: $selectedCategories,
                         selectedFeatures: $selectedFeatures,
                         selectedResolutions: $selectedResolutions,
                         selectedPerformanceImpacts: $selectedPerformanceImpact,
-                        selectedVersions: $selectedVersions
+                        selectedVersions: $selectedVersions,
+                        selectedLoaders: $selectedLoaders
                     )
                     .id(refreshID)
-                    .onChange(of: type) { _, _ in
+                    .onChange(of: type) { _,_ in
                         refreshID = UUID()
                     }
                 }
