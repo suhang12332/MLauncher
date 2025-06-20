@@ -29,9 +29,9 @@ struct ContentView: View {
             if let game = gameRepository.getGame(by: gameId) {
                 if "local" == gameResourcesLocation {
                     List {
-                        HStack {
-                            MinecraftSkinRenderView()
-                        }
+//                        HStack {
+//                            MinecraftSkinRenderView()
+//                        }
                     }
                 }else{
                     List {

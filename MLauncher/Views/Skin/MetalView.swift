@@ -1,5 +1,5 @@
-import SwiftUI
 import MetalKit
+import SwiftUI
 
 class MetalViewModel: ObservableObject {
     @Published var scale: Float = 1.0
@@ -16,7 +16,12 @@ struct MetalView: NSViewRepresentable {
     func makeNSView(context: Context) -> MTKView {
         let mtkView = MetalViewWithScroll(frame: .zero, viewModel: viewModel)
         mtkView.device = MTLCreateSystemDefaultDevice()
-        mtkView.clearColor = MTLClearColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+        mtkView.clearColor = MTLClearColor(
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+            alpha: 1.0
+        )
         mtkView.isPaused = true
         mtkView.enableSetNeedsDisplay = true
         let renderer = MetalRenderer(mtkView: mtkView, viewModel: viewModel)
@@ -64,8 +69,8 @@ class MetalViewWithScroll: MTKView {
         self.setNeedsDisplay(self.bounds)
     }
     override func mouseDragged(with event: NSEvent) {
-        viewModel.rotation.y -= Float(event.deltaX) * 0.01
-        viewModel.rotation.x -= Float(event.deltaY) * 0.01
+        viewModel.rotation.y += Float(event.deltaX) * 0.01
+        viewModel.rotation.x += Float(event.deltaY) * 0.01
         self.setNeedsDisplay(self.bounds)
     }
-} 
+}
