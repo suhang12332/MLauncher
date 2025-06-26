@@ -22,36 +22,37 @@ struct ContentView: View {
     @Binding var gameResourcesType: String
     @Binding var selectedLoaders: [String]
     @Binding var gameResourcesLocation: String
-    
+    @EnvironmentObject var playerListViewModel: PlayerListViewModel
+    @Binding var gameId: String?
     var body: some View {
         switch selectedItem {
         case .game(let gameId):
             if let game = gameRepository.getGame(by: gameId) {
                 if "local" == gameResourcesLocation {
                     List {
-//                        HStack {
-//                            MinecraftSkinRenderView()
-//                        }
+                        HStack {
+                            MinecraftSkinRenderView(skinName: playerListViewModel.currentPlayer?.avatarName).frame(minWidth: 200,minHeight: 400)
+                        }
                     }
                 }else{
-                    List {
-                        CategoryContentView(
-                            project: gameResourcesType,
-                            type: "game",
-                            selectedCategories: $selectedCategories,
-                            selectedFeatures: $selectedFeatures,
-                            selectedResolutions: $selectedResolutions,
-                            selectedPerformanceImpacts: $selectedPerformanceImpact,
-                            selectedVersions: $selectedVersions,
+            List {
+                CategoryContentView(
+                    project: gameResourcesType,
+                    type: "game",
+                    selectedCategories: $selectedCategories,
+                    selectedFeatures: $selectedFeatures,
+                    selectedResolutions: $selectedResolutions,
+                    selectedPerformanceImpacts: $selectedPerformanceImpact,
+                    selectedVersions: $selectedVersions,
                             selectedLoaders: $selectedLoaders,
                             gameVersion: game.gameVersion,
                             gameLoader: "Vanilla" == game.modLoader ? nil : game.modLoader
-                        )
-                        .id(gameResourcesType)
+                )
+                .id(gameResourcesType)
                     }
                 }
             } else {
-                Text("Game not found")
+                Text("game.not_found".localized())
             }
         case .resource(let type):
             List {

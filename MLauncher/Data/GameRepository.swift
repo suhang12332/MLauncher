@@ -34,15 +34,6 @@ class GameRepository: ObservableObject {
         saveGames()
     }
 
-    /// 更新游戏信息
-    /// - Parameter updatedGame: 更新后的游戏版本信息
-    func updateGame(_ updatedGame: GameVersionInfo) {
-        if let index = games.firstIndex(where: { $0.id == updatedGame.id }) {
-            games[index] = updatedGame
-            saveGames()
-        }
-    }
-
     /// 根据游戏ID查找游戏版本信息
     /// - Parameter id: 游戏ID
     /// - Returns: 匹配的 GameVersionInfo 对象，如果找不到则返回 nil

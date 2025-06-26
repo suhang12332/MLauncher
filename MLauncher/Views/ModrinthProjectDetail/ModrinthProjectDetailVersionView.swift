@@ -125,7 +125,7 @@ private struct GameVersionFilterPopover: View {
                         Image(systemName: "xmark.circle.fill")
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.primary)
                 }
             }
             
@@ -168,8 +168,8 @@ private struct GameVersionGroup: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(majorVersion)
-                .font(.subheadline.bold())
-                .foregroundColor(.secondary)
+                .font(.headline.bold())
+                .foregroundColor(.primary)
             
             FlowLayout(spacing: 6) {
                 ForEach(versions, id: \.self) { version in
@@ -309,7 +309,7 @@ private struct GameVersionsPopover: View {
                     ForEach(groupedGameVersions(version.gameVersions).keys.sorted(by: >), id: \.self) { majorVersion in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(majorVersion)
-                                .font(.subheadline.bold())
+                                .font(.headline.bold())
                                 .foregroundColor(.secondary)
                             
                             FlowLayout(spacing: 6) {

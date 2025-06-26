@@ -7,7 +7,11 @@ public struct SidebarView: View {
     let games: [String]
     @StateObject private var lang = LanguageManager.shared
     @State private var showingGameForm = false
+    @State private var showPlayerAlert = false
     @EnvironmentObject var gameRepository: GameRepository
+    @EnvironmentObject var playerListViewModel: PlayerListViewModel
+    @State private var searchText: String = ""
+    
     public init(selectedItem: Binding<SidebarItem>, games: [String]) {
         self._selectedItem = selectedItem
         self.games = games
@@ -26,8 +30,8 @@ public struct SidebarView: View {
             
             // 游戏部分
             Section(header: Text("sidebar.games.title".localized())) {
-                // Iterate over the games from GameRepository
-                ForEach(gameRepository.games) { game in
+                // 支持模糊搜索
+                ForEach(filteredGames) { game in
                     NavigationLink(value: SidebarItem.game(game.id)) {
                         HStack(spacing: 6) {
                             if game.gameIcon.hasPrefix("data:image") {
@@ -66,16 +70,21 @@ public struct SidebarView: View {
                 }
             }
         }
+        .searchable(text: $searchText, placement: .sidebar, prompt: "sidebar.search.games".localized())
         .navigationTitle("app.name".localized())
         .id(lang.selectedLanguage) // 强制视图在语言改变时重新创建    、
         .safeAreaInset(edge: .bottom) {
             Button(
                 action: {
-                    showingGameForm.toggle()
+                    if playerListViewModel.currentPlayer == nil {
+                        showPlayerAlert = true
+                    } else {
+                        showingGameForm.toggle()
+                    }
                 },
                 label: {
                     Label(
-                        NSLocalizedString("addgame", comment: "添加游戏"),
+                        "addgame".localized(),
                         systemImage: "gamecontroller"
                     )
                 }
@@ -88,9 +97,25 @@ public struct SidebarView: View {
         // The sheet to present the form
         .sheet(isPresented: $showingGameForm) {
             // Pass the EnvironmentObject to GameFormView
-            GameFormView().environmentObject(gameRepository)
+            GameFormView()
+                .environmentObject(gameRepository)
+                .environmentObject(playerListViewModel)
                 .presentationDetents([.medium, .large])
                 .presentationBackgroundInteraction(.automatic)
         }
+        .alert("sidebar.alert.no_player.title".localized(), isPresented: $showPlayerAlert) {
+            Button("common.confirm".localized(), role: .cancel) { }
+        } message: {
+            Text("sidebar.alert.no_player.message".localized())
+        }
+    }
+    
+    // 只对游戏名做模糊搜索
+    private var filteredGames: [GameVersionInfo] {
+        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return gameRepository.games
+        }
+        let lower = searchText.lowercased()
+        return gameRepository.games.filter { $0.gameName.lowercased().contains(lower) }
     }
 }

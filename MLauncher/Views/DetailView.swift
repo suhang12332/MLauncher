@@ -9,7 +9,7 @@ import SwiftUI
 
 struct DetailView: View {
     @ObservedObject private var lang = LanguageManager.shared
-    let selectedItem: SidebarItem  // 接收选中的侧边栏项目
+    @Binding var selectedItem: SidebarItem  // 接收并可修改选中的侧边栏项目
     @Binding var currentPage: Int
     @Binding var totalItems: Int
     @Binding var sortIndex: String
@@ -28,6 +28,7 @@ struct DetailView: View {
     @Binding var gameResourcesLocation: String
     @Binding var selectedLoader: [String]
     @EnvironmentObject var gameRepository: GameRepository
+    @Binding var gameId: String?
     var body: some View {
         switch selectedItem {
         case .game(let gameId):
@@ -45,7 +46,9 @@ struct DetailView: View {
                                        selectedProjectId: $selectedProjectId,
                                        searchText: $searchText,
                                        selectedLoaders: $selectedLoader,
-                                       gameType: $gameResourcesLocation
+                                       gameType: $gameResourcesLocation,
+                                       selectedItem: $selectedItem,
+                                       gameId: $gameId
                     )
                     .padding()
                     
@@ -75,7 +78,8 @@ struct DetailView: View {
                         selectedProjectId: $selectedProjectId,
                         searchText: $searchText,
                         selectedLoader: $selectedLoader,
-                        gameInfo: nil
+                        gameInfo: nil,
+                        selectedItem: $selectedItem
                     )
                     .padding()
                 }

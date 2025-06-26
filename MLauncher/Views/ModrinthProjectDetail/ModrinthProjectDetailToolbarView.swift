@@ -14,6 +14,7 @@ struct ModrinthProjectDetailToolbarView: View {
     
     @Binding var versionCurrentPage: Int
     @Binding var versionTotal: Int
+    @Binding var gameId: String?
     var onBack: () -> Void
 
     var body: some View {
@@ -68,11 +69,13 @@ struct ModrinthProjectDetailToolbarView: View {
         }
 
         Button(action: onBack) {
-            Image(systemName: "house")
+            Image(systemName: "chevron.backward")
         }
         Picker("view.mode.title".localized(), selection: $selectedTab) {
             Label("view.mode.details".localized(), systemImage: "doc.text").tag(0)
-            Label("view.mode.downloads".localized(), systemImage: "arrow.down.circle").tag(1)
+            if gameId == nil {
+                Label("view.mode.downloads".localized(), systemImage: "arrow.down.circle").tag(1)
+            }
         }
         .pickerStyle(.segmented)
         .background(.clear)

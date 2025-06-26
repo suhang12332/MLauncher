@@ -13,7 +13,7 @@ struct MainView: View {
     @State private var games: [String] = []  // 这里应该从数据源获取游戏列表
     @ObservedObject private var lang = LanguageManager.shared
     @ObservedObject private var theme = ThemeManager.shared
-
+    @EnvironmentObject var gameRepository: GameRepository
     // 分页相关
     @State private var currentPage: Int = 1
     @State private var totalItems: Int = 0
@@ -34,13 +34,14 @@ struct MainView: View {
     @State private var gameResourcesType = "mod"
     @State private var searchText: String = ""
     @State private var gameResourcesLocation = "local"
+    @State private var gameId: String? = nil
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             // 侧边栏
             SidebarView(selectedItem: $selectedItem, games: games)
                 .navigationSplitViewColumnWidth(min: 160, ideal: 160, max: 160)
         } content: {
-            // 内容区，使用新的 ContentView
+//             内容区，使用新的 ContentView
             ContentView(
                 selectedItem: selectedItem,
                 selectedVersions: $selectedVersions,
@@ -53,14 +54,15 @@ struct MainView: View {
                 loadedProjectDetail: $loadedProjectDetail,
                 gameResourcesType: $gameResourcesType,
                 selectedLoaders: $selectedLoaders,
-                gameResourcesLocation: $gameResourcesLocation
+                gameResourcesLocation: $gameResourcesLocation,
+                gameId: $gameId
             )
             .toolbar {
                 ContentToolbarView()
             }.navigationSplitViewColumnWidth(min: 235, ideal: 240, max: 250)
         } detail: {
             DetailView(
-                selectedItem: selectedItem,
+                selectedItem: $selectedItem,
                 currentPage: $currentPage,
                 totalItems: $totalItems,
                 sortIndex: $sortIndex,
@@ -77,12 +79,13 @@ struct MainView: View {
                 versionTotal: $versionTotal,
                 searchText: $searchText,
                 gameResourcesLocation: $gameResourcesLocation,
-                selectedLoader: $selectedLoaders
+                selectedLoader: $selectedLoaders,
+                gameId: $gameId
             )
             .toolbar {
                 
                 DetailToolbarView(
-                    selectedItem: selectedItem,
+                    selectedItem: $selectedItem,
                     sortIndex: $sortIndex,
                     gameResourcesType: $gameResourcesType,
                     resourceType: $gameResourcesLocation,
@@ -94,45 +97,92 @@ struct MainView: View {
                     selectProjectId: $selectedProjectId,
                     selectedTab: $selectedTab,
                     searchText: $searchText,
+                    gameId: $gameId
                     
                 )
             }
 
         }
-        .onChange(of: selectedItem) { _, newValue in
-            if case .resource(_) = newValue {
-                resetResourceFilters()
+        .onChange(of: selectedItem) { value, newValue in
+            gameResourcesLocation = "local"
+            // 资源跳转到游戏
+            if case .resource = value, case .game(let id) = newValue {
+                let game = gameRepository.getGame(by: id)
+                if game?.modLoader.lowercased() == "vanilla" {
+                    gameResourcesType = "datapack"
+                }else{
+                    gameResourcesType = "mod"
+                }
+                gameId = id
+                selectedProjectId = nil
             }
+            // 游戏跳转到详情
+            if case .resource = newValue, case .game(_) = value {
+                sortIndex = "relevance"
+                gameResourcesType = "mod"
+                currentPage = 1
+                totalItems = 0
+                selectedVersions.removeAll()
+                selectedLicenses = []
+                selectedCategories = []
+                selectedFeatures = []
+                selectedResolutions = []
+                selectedPerformanceImpact = []
+                selectedLoaders = []
+                loadedProjectDetail = nil
+                selectedTab = 0
+                versionCurrentPage = 1
+                versionTotal = 0
+                searchText = ""
+                if selectedProjectId == nil {
+                    gameId = nil
+                }
+
+            }
+            // 游戏跳转到游戏
+            if case .game(let id) = newValue, case .game(_) = value {
+                let game = gameRepository.getGame(by: id)
+                if game?.modLoader.lowercased() == "vanilla" {
+                    gameResourcesType = "datapack"
+                }else{
+                    gameResourcesType = "mod"
+                }
+                gameId = id
+            }
+            
+            // 游戏跳转到资源
+            
+            
+            if case .resource(_) = newValue,case .resource(_) = value {
+                sortIndex = "relevance"
+                gameResourcesType = "mod"
+                currentPage = 1
+                totalItems = 0
+                selectedVersions.removeAll()
+                selectedLicenses = []
+                selectedCategories = []
+                selectedFeatures = []
+                selectedResolutions = []
+                selectedPerformanceImpact = []
+                selectedLoaders = []
+                loadedProjectDetail = nil
+                selectedTab = 0
+                versionCurrentPage = 1
+                versionTotal = 0
+                selectedProjectId = nil
+                searchText = ""
+                gameId = nil
+            }
+            
         }
-        .onChange(of: selectedProjectId) { _, _ in
+        .onChange(of: selectedProjectId) { old, new in
             // Reset loaded project detail when selected project changes
             loadedProjectDetail = nil
+            
         }
         
         .preferredColorScheme(theme.colorScheme)
     }
-    private func resetResourceFilters() {
-        sortIndex = "relevance"
-        gameResourcesType = "mod"
-        currentPage = 1
-        totalItems = 0
-        selectedVersions = []
-        selectedLicenses = []
-        selectedCategories = []
-        selectedFeatures = []
-        selectedResolutions = []
-        selectedPerformanceImpact = []
-        selectedLoaders = []
-        selectedProjectId = nil
-        loadedProjectDetail = nil
-        selectedTab = 0
-        versionCurrentPage = 1
-        versionTotal = 0
-        searchText = ""
-        gameResourcesLocation = "local"
-    }
+
 }
 
-#Preview {
-    MainView()
-}

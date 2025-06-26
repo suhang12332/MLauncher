@@ -23,7 +23,7 @@ struct PlayerListView: View {
                             playerListViewModel.setCurrentPlayer(
                                 byID: player.id
                             )
-                            dismiss()
+                            showingPlayerListPopover = false
                         } label: {
                             PlayerAvatarView(
                                 player: player,

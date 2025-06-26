@@ -66,6 +66,13 @@ enum URLConfig {
             static let analytics = baseURL.appendingPathComponent("analytics")
             static let updateCheck = baseURL.appendingPathComponent("update")
         }
+
+        // FabricMC API
+        enum Fabric {
+            static let baseAPI = URL(string: "https://meta.fabricmc.net/v2")!
+            static let loader = baseAPI.appendingPathComponent("versions/loader")
+            static let maven = URL(string: "https://maven.fabricmc.net/")!
+        }
     }
 
     // 资源文件

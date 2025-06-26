@@ -85,17 +85,16 @@ enum ModrinthService {
     }
     
     static func fetchProjectVersionsFilter(
-        id: String,
-        selectedVersions: [String],
-        selectedLoaders: [String]
-    ) async throws -> [ModrinthProjectDetailVersion] {
-        let versions = try await fetchProjectVersions(id: id)
-        return versions.filter { version in
-            // 至少有一个版本匹配
-            let versionMatch = selectedVersions.isEmpty || !Set(version.gameVersions).isDisjoint(with: selectedVersions)
-            // 至少有一个loader匹配
-            let loaderMatch = selectedLoaders.isEmpty || !Set(version.loaders).isDisjoint(with: selectedLoaders)
-            return versionMatch && loaderMatch
+            id: String,
+            selectedVersions: [String],
+            selectedLoaders: [String]
+        ) async throws -> [ModrinthProjectDetailVersion] {
+            let versions = try await fetchProjectVersions(id: id)
+            return versions.filter { version in
+                // 必须同时满足版本和 loader 匹配
+                let versionMatch = selectedVersions.isEmpty || !Set(version.gameVersions).isDisjoint(with: selectedVersions)
+                let loaderMatch = selectedLoaders.isEmpty || !Set(version.loaders).isDisjoint(with: selectedLoaders)
+                return versionMatch && loaderMatch
+            }
         }
-    }
 }

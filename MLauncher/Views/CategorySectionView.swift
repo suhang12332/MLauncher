@@ -15,23 +15,65 @@ struct CategorySectionView: View {
     let items: [FilterItem]
     @Binding var selectedItems: [String]
     let isLoading: Bool
+    var isVersionSection: Bool = false // 新增参数，版本分组用
+    
+    @State private var showOverflowPopover = false
     
     // MARK: - Body
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack {
             headerView
             if isLoading {
                 loadingPlaceholder
             } else {
-                contentView
+                contentWithOverflow
             }
         }
     }
     
     // MARK: - Subviews
     private var headerView: some View {
-        HStack(alignment: .center) {
+        let (_, overflowItems) = computeVisibleAndOverflowItems()
+        return HStack {
             headerTitle
+            if !overflowItems.isEmpty {
+                Button(action: { showOverflowPopover = true }) {
+                    Text("+\(overflowItems.count)")
+                        .font(.caption)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
+                        .background(Color.gray.opacity(0.15))
+                        .cornerRadius(4)
+                }
+                .buttonStyle(.plain)
+                .popover(isPresented: $showOverflowPopover, arrowEdge: .leading) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if isLoading {
+                            loadingPlaceholder
+                        } else if isVersionSection {
+                            ScrollView {
+                                versionGroupedContent(allItems: items)
+                            }
+                            .frame(maxHeight: 320)
+                        } else {
+                            ScrollView {
+                                FlowLayout {
+                                    ForEach(items) { item in
+                                        FilterChip(
+                                            title: item.name,
+                                            isSelected: selectedItems.contains(item.id),
+                                            action: { toggleSelection(for: item.id) }
+                                        )
+                                    }
+                                }
+                                .padding()
+                            }
+                            .frame(maxHeight: 320)
+                        }
+                    }
+                    .frame(width: 320)
+                }
+            }
             Spacer()
             clearButton
         }
@@ -81,21 +123,88 @@ struct CategorySectionView: View {
         .padding(.vertical, CategorySectionConstants.verticalPadding)
     }
     
-    private var contentView: some View {
-        ScrollView {
-            FlowLayout {
-                ForEach(items) { item in
-                    FilterChip(
-                        title: item.name,
-                        isSelected: selectedItems.contains(item.id),
-                        action: { toggleSelection(for: item.id) }
-                    )
-                }
+    // 主内容+溢出处理
+    private var contentWithOverflow: some View {
+        let (visibleItems, _) = computeVisibleAndOverflowItems()
+        return FlowLayout {
+            ForEach(visibleItems) { item in
+                FilterChip(
+                    title: item.name,
+                    isSelected: selectedItems.contains(item.id),
+                    action: { toggleSelection(for: item.id) }
+                )
             }
         }
         .frame(maxHeight: CategorySectionConstants.maxHeight)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.vertical, CategorySectionConstants.verticalPadding)
+    }
+    
+    // 计算可见和溢出项
+    private func computeVisibleAndOverflowItems() -> ([FilterItem], [FilterItem]) {
+        // 先用FlowLayout测量每行，最多5行
+        // 简化：假设每行最多6-8个，直接取前N个
+        let maxRows = 5
+        var rows: [[FilterItem]] = []
+        var currentRow: [FilterItem] = []
+        var currentRowWidth: CGFloat = 0
+        let maxWidth: CGFloat = 320 // 估算宽度
+        let chipPadding: CGFloat = 16 // 估算chip宽度padding
+        for item in items {
+            let estWidth = CGFloat(item.name.count) * 10 + chipPadding
+            if currentRowWidth + estWidth > maxWidth, !currentRow.isEmpty {
+                rows.append(currentRow)
+                currentRow = [item]
+                currentRowWidth = estWidth
+            } else {
+                currentRow.append(item)
+                currentRowWidth += estWidth
+            }
+        }
+        if !currentRow.isEmpty { rows.append(currentRow) }
+        let visibleRows = rows.prefix(maxRows)
+        let visibleItems = visibleRows.flatMap { $0 }
+        let overflowItems = Array(items.dropFirst(visibleItems.count))
+        return (visibleItems, overflowItems)
+    }
+    
+    // 版本分组内容
+    @ViewBuilder
+    private func versionGroupedContent(allItems: [FilterItem]) -> some View {
+        // 按大版本分组，如1.20, 1.19, ...
+        let groups = Dictionary(grouping: allItems) { (item: FilterItem) -> String in
+            let comps = item.name.split(separator: ".")
+            if comps.count >= 2 {
+                return comps[0] + "." + comps[1]
+            } else {
+                return item.name
+            }
+        }
+        let sortedKeys = groups.keys.sorted {
+            let lhs = $0.split(separator: ".").compactMap { Int($0) }
+            let rhs = $1.split(separator: ".").compactMap { Int($0) }
+            return lhs.lexicographicallyPrecedes(rhs)
+        }.reversed()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(sortedKeys, id: \.self) { key in
+                    Text(key)
+                        .font(.headline.bold())
+                        .foregroundColor(.primary)
+                        .padding(.top, 4)
+                    FlowLayout {
+                        ForEach(groups[key] ?? []) { item in
+                            FilterChip(
+                                title: item.name,
+                                isSelected: selectedItems.contains(item.id),
+                                action: { toggleSelection(for: item.id) }
+                            )
+                        }
+                    }
+                }
+            }
+            .padding()
+        }
     }
     
     // MARK: - Actions

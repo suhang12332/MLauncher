@@ -8,7 +8,19 @@ import SwiftUI
 
 struct MinecraftSkinRenderView: View {
     @StateObject var viewModel = MetalViewModel()
+    var skinName: String?
+
     var body: some View {
-        MetalView(viewModel: viewModel).frame(minWidth: 235,idealWidth: 240,maxWidth: 250,minHeight: 400,maxHeight: 400)
+        MetalView(viewModel: viewModel)
+            .onChange(of: skinName) { oldValue, newValue in
+                if let name = newValue {
+                    viewModel.skinName = name + "-skin"
+                }
+            }
+            .onAppear {
+                if let name = skinName {
+                    viewModel.skinName = name + "-skin"
+                }
+            }
     }
 }

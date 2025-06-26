@@ -1,9 +1,10 @@
-import MetalKit
 import SwiftUI
+import MetalKit
 
 class MetalViewModel: ObservableObject {
     @Published var scale: Float = 1.0
-    @Published var rotation = SIMD2<Float>(0, -1.5)
+    @Published var rotation = SIMD2<Float>(0, -1.8)
+    @Published var skinName: String = "steve-skin" // 默认皮肤名
 }
 
 struct MetalView: NSViewRepresentable {
@@ -16,12 +17,7 @@ struct MetalView: NSViewRepresentable {
     func makeNSView(context: Context) -> MTKView {
         let mtkView = MetalViewWithScroll(frame: .zero, viewModel: viewModel)
         mtkView.device = MTLCreateSystemDefaultDevice()
-        mtkView.clearColor = MTLClearColor(
-            red: 1.0,
-            green: 1.0,
-            blue: 1.0,
-            alpha: 1.0
-        )
+        mtkView.clearColor = MTLClearColor(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
         mtkView.isPaused = true
         mtkView.enableSetNeedsDisplay = true
         let renderer = MetalRenderer(mtkView: mtkView, viewModel: viewModel)
@@ -34,6 +30,11 @@ struct MetalView: NSViewRepresentable {
         if let renderer = context.coordinator.renderer {
             renderer.scale = viewModel.scale
             renderer.rotation = viewModel.rotation
+            let oldSkin = renderer.skinName
+            renderer.skinName = viewModel.skinName
+            if oldSkin != viewModel.skinName {
+                nsView.setNeedsDisplay(nsView.bounds)
+            }
         }
     }
 

@@ -15,18 +15,21 @@ class MetalRenderer: NSObject, MTKViewDelegate {
     var vertexCount: Int = 0
     var scale: Float = 1.0
     var rotation = SIMD2<Float>(0, 0)
+    var skinName: String = "steve-skin" { didSet { if oldValue != skinName { reloadTexture() } } }
     var texture: MTLTexture?
     var samplerState: MTLSamplerState?
     var lastUniforms: Uniforms? = nil
     var lastViewSize: CGSize = .zero
+    var lastLoadedSkin: String = ""
 
     init(mtkView: MTKView, viewModel: MetalViewModel) {
         self.device = mtkView.device!
         self.commandQueue = device.makeCommandQueue()!
         self.scale = viewModel.scale
         self.rotation = viewModel.rotation
+        self.skinName = viewModel.skinName
         super.init()
-        mtkView.colorPixelFormat = .bgra8Unorm
+        mtkView.colorPixelFormat = .bgra8Unorm_srgb
         mtkView.depthStencilPixelFormat = .depth32Float
         loadModel()
         loadTexture()
@@ -45,10 +48,16 @@ class MetalRenderer: NSObject, MTKViewDelegate {
     }
 
     func loadTexture() {
+        reloadTexture()
+    }
+
+    func reloadTexture() {
+        guard lastLoadedSkin != skinName else { return }
         let loader = MTKTextureLoader(device: device)
         do {
-            let tex = try loader.newTexture(name: "alex-skin", scaleFactor: 1.0, bundle: .main, options: [MTKTextureLoader.Option.SRGB : true])
+            let tex = try loader.newTexture(name: skinName, scaleFactor: 1.0, bundle: .main, options: [MTKTextureLoader.Option.SRGB : true])
             self.texture = tex
+            lastLoadedSkin = skinName
         } catch {
             print("Failed to load texture from assets: \(error)")
         }
@@ -115,6 +124,7 @@ class MetalRenderer: NSObject, MTKViewDelegate {
     }
 
     func draw(in view: MTKView) {
+        reloadTexture()
         let uniforms = makeUniforms(viewSize: view.drawableSize)
         guard let drawable = view.currentDrawable,
               let descriptor = view.currentRenderPassDescriptor,
@@ -187,4 +197,5 @@ extension float4x4 {
             SIMD4<Float>(0, 0, 0, 1)
         ])
     }
-} 
+}
+ 

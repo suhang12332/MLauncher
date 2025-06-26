@@ -97,7 +97,8 @@ struct CategoryContentView: View {
                 FilterItem(id: $0.id, name: $0.id)
             },
             selectedItems: $selectedVersions,
-            isLoading: viewModel.isLoading
+            isLoading: viewModel.isLoading,
+            isVersionSection: true
         )
     }
 

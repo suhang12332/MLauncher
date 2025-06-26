@@ -39,6 +39,8 @@
 "resource.content.type.shader" = "Shaders";
 "resource.content.type.resourcepack" = "Resource Packs";
 "resource.content.type.modpack" = "Modpacks";
+"resource.content.type.server" = "Server";
+"resource.content.type.local" = "Installed";
 
 // Language Selection
 "language.zh-Hans" = "简体中文";
@@ -66,6 +68,10 @@
 "settings.default_java_path.placeholder" = "Enter Default Java Path";
 "settings.player.placeholder" = "Player settings will go here.";
 
+// Sidebar Alerts
+"sidebar.alert.no_player.title" = "No Player Selected";
+"sidebar.alert.no_player.message" = "Please create or select a player before adding a new game.";
+
 // Theme Settings
 "settings.theme.title" = "Theme Settings";
 "settings.theme.picker" = "Select Theme";
@@ -82,3 +88,102 @@
 "versions.date" = "Published";
 "versions.loading" = "Loading versions...";
 "versions.platforms" = "Platforms"; 
+"versions.operate" = "Operate";
+
+// Game Versions
+"game.versions.title" = "Versions";
+"game.versions.numeric" = "Numeric Version";
+"game.versions.all" = "All Versions";
+"game.versions.filter" = "Filter Versions";
+
+// Project Info
+"project.info.compatibility" = "Compatibility";
+"project.info.minecraft" = "Minecraft:";
+"project.info.minecraft.edition" = "Java Edition";
+"project.info.versions" = "Versions:";
+"project.info.platforms" = "Mod Loaders:";
+"project.info.environments" = "Supported Environments";
+"project.info.environments.client" = "Client:";
+"project.info.environments.server" = "Server:";
+"project.info.links" = "Links";
+"project.info.links.issues" = "Report Issue";
+"project.info.links.source" = "Source Code";
+"project.info.links.wiki" = "Wiki";
+"project.info.links.discord" = "Join Discord";
+"project.info.links.donate" = "Donate";
+"project.info.creators" = "Creators";
+"project.info.creators.moderator" = "Moderator";
+"project.info.creators.owner" = "Owner";
+"project.info.details" = "Details";
+"project.info.details.licensed" = "License";
+"project.info.details.published" = "Published";
+"project.info.details.updated" = "Updated";
+
+// Game Form
+"game.form.title" = "Add Game";
+"game.form.icon" = "Game Icon";
+"game.form.icon.description" = "Choose an icon for the game";
+"game.form.name" = "Game Name";
+"game.form.name.placeholder" = "Enter game name";
+"game.form.version" = "Game Version";
+"game.form.modloader" = "Mod Loader";
+"game.form.save.error" = "Failed to save game info";
+
+// Download
+"download.core.title" = "Core Files";
+"download.resources.title" = "Resource Files";
+"download.progress" = "Progress: %d%%";
+"download.current.file" = "Current file: %@";
+"download.files" = "Files: %d/%d";
+
+// Notification
+"notification.download.complete.title" = "Download Complete";
+"notification.download.complete.body" = "%@ (Version: %@, Loader: %@) downloaded successfully.";
+"notification.download.failed.title" = "Download Failed";
+"notification.download.failed.body" = "%@ (Version: %@, Loader: %@) download failed: %@";
+
+// Common
+"common.cancel" = "Cancel";
+"common.confirm" = "Confirm";
+"addgame" = "Add Game";
+"sidebar.games" = "Games";
+"sidebar.resources" = "Resources";
+"resource.mod" = "Mod";
+"resource.datapack" = "Datapack";
+"resource.shader" = "Shader";
+"resource.resourcepack" = "Resource Pack";
+"resource.modpack" = "Modpack";
+
+// Alert
+"alert.add_player.title" = "Add Player";
+"alert.add_player.message" = "Please enter player name. Note: Player name must be unique.";
+"alert.add_player.placeholder" = "Player Name";
+"alert.button.cancel" = "Cancel";
+"alert.button.add" = "Add";
+"result.empty" = "No results found";
+"result.error" = "Query error, please try again later!";
+"menu.sort" = "Sort";
+"menu.sort.relevance" = "Relevance";
+"menu.sort.downloads" = "Downloads";
+"menu.sort.follows" = "Follows";
+"menu.sort.newest" = "Newest";
+"menu.sort.updated" = "Updated";
+"player.add" = "Add Player";
+"filter.version.icon" = "Game Version";
+"filter.version" = "Game Version";
+"filter.category" = "Category";
+"filter.environment" = "Environment";
+"filter.loader" = "Loader";
+"filter.behavior" = "Behavior";
+"filter.performance" = "Performance";
+"filter.resolutions" = "Resolution";
+"category.loading" = "Loading %@...";
+"environment.client" = "Client";
+"environment.server" = "Server";
+"platform.client.required" = "Required";
+"platform.server.required" = "Required";
+"platform.client.optional" = "Optional";
+"platform.server.optional" = "Optional";
+"platform.client.unsupported" = "Unsupported";
+"platform.server.unsupported" = "Unsupported";
+"platform.support" = "Platform Support"; 

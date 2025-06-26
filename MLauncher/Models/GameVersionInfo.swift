@@ -25,6 +25,12 @@ struct GameVersionInfo: Codable, Identifiable {
     /// 游戏版本号
     let gameVersion: String
     
+    /// Mod版本号
+    var modVersion: String
+    
+    /// Mod JVM参数
+    var modJvm: String
+    
     /// 资源索引版本
     var assetIndex: String
     
@@ -59,6 +65,9 @@ struct GameVersionInfo: Codable, Identifiable {
     
     /// 游戏资源列表
     var resources: [ModrinthProject]
+    
+    /// 游戏主类（Main Class）
+    var mainClass: String
 
     /// 初始化游戏版本信息
     /// - Parameters:
@@ -66,6 +75,8 @@ struct GameVersionInfo: Codable, Identifiable {
     ///   - gameName: 游戏名称
     ///   - gameIcon: 游戏图标路径
     ///   - gameVersion: 游戏版本号
+    ///   - modVersion: Mod版本号
+    ///   - modJvm: Mod JVM参数，默认空字符串
     ///   - assetIndex: 资源索引版本
     ///   - modLoader: 模组加载器类型
     ///   - isUserAdded: 是否用户手动添加
@@ -77,11 +88,14 @@ struct GameVersionInfo: Codable, Identifiable {
     ///   - launchCommand: 启动命令，默认空字符串
     ///   - runningMemorySize: 运行内存大小 (MB)，默认 2048
     ///   - resources: 游戏资源列表，默认空数组
+    ///   - mainClass: 游戏主类，默认空字符串
     init(
         id: UUID = UUID(),
         gameName: String,
         gameIcon: String,
         gameVersion: String,
+        modVersion: String = "",
+        modJvm: String = "",
         assetIndex: String,
         modLoader: String,
         isUserAdded: Bool,
@@ -92,12 +106,15 @@ struct GameVersionInfo: Codable, Identifiable {
         jvmArguments: String = "",
         launchCommand: String = "",
         runningMemorySize: Int = 2048,
-        resources: [ModrinthProject] = []
+        resources: [ModrinthProject] = [],
+        mainClass: String = ""
     ) {
         self.id = id.uuidString
         self.gameName = gameName
         self.gameIcon = gameIcon
         self.gameVersion = gameVersion
+        self.modVersion = modVersion
+        self.modJvm = modJvm
         self.assetIndex = assetIndex
         self.modLoader = modLoader
         self.isUserAdded = isUserAdded
@@ -109,5 +126,6 @@ struct GameVersionInfo: Codable, Identifiable {
         self.launchCommand = launchCommand
         self.runningMemorySize = runningMemorySize
         self.resources = resources
+        self.mainClass = mainClass
     }
 } 

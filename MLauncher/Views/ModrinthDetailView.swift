@@ -22,7 +22,7 @@ struct ModrinthDetailView: View {
     
     // Timer to implement debounce for search
     @State private var searchTimer: Timer? = nil
-    
+    @Binding var selectedItem: SidebarItem
     // MARK: - Body
     var body: some View {
         LazyVStack {
@@ -133,6 +133,9 @@ struct ModrinthDetailView: View {
             )
             .onTapGesture {
                 selectedProjectId = mod.projectId
+                if let type = ResourceType(rawValue: query) {
+                        selectedItem = .resource(type)
+                }
             }
         }
     }

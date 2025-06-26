@@ -52,7 +52,7 @@ private struct MinecraftVersionHeader: View {
             Text("project.info.minecraft".localized())
                 .font(.headline)
             Text("project.info.minecraft.edition".localized())
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.primary)
                 .font(.caption.bold())
         }
     }
@@ -75,7 +75,7 @@ private struct GameVersionsSection: View {
                             .padding(.horizontal, 4)
                             .padding(.vertical, 2)
                             .background(Color.gray.opacity(0.15))
-                            .cornerRadius(12)
+                            .cornerRadius(4)
                     }
                     .buttonStyle(.plain)
                     .popover(isPresented: $showingVersionsPopover) {
@@ -109,8 +109,8 @@ private struct GameVersionsPopover: View {
                     ForEach(groupedVersions(versions).keys.sorted(by: >), id: \.self) { majorVersion in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(majorVersion)
-                                .font(.subheadline.bold())
-                                .foregroundColor(.secondary)
+                                .font(.headline.bold())
+                                .foregroundColor(.primary)
                             
                             FlowLayout(spacing: Constants.spacing) {
                                 ForEach(groupedVersions(versions)[majorVersion] ?? [], id: \.self) { version in
@@ -162,7 +162,7 @@ private struct PlatformSupportSection: View {
     let serverSide: String
     
     var body: some View {
-        HStack {
+        VStack(alignment: .leading, spacing: 4) {
             Text("platform.support".localized() + ":")
                 .font(.headline)
             HStack(spacing: 8) {
@@ -174,7 +174,7 @@ private struct PlatformSupportSection: View {
                     icon: "server.rack",
                     text: "platform.server.\(serverSide)".localized()
                 )
-            }
+            }.padding(.top, 4)
         }
     }
 }
@@ -274,11 +274,11 @@ private struct DetailsSection: View {
                 
                 DetailRow(
                     label: "project.info.details.published".localized(),
-                    value: project.published.formattedDate()
+                    value: project.published.formatted(.relative(presentation: .named))
                 )
                 DetailRow(
                     label: "project.info.details.updated".localized(),
-                    value: project.updated.formattedDate()
+                    value: project.updated.formatted(.relative(presentation: .named))
                 )
             }
         }

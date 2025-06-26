@@ -91,15 +91,13 @@ private enum Constants {
 // MARK: - MinecraftFileManager
 class MinecraftFileManager {
     // MARK: - Properties
-    private let metaDirectory: URL
-    private let profileDirectory: URL
+    private let fileManager = FileManager.default
+    private let session: URLSession
     private let coreFilesCount = NSLockingCounter()
     private let resourceFilesCount = NSLockingCounter()
     private var coreTotalFiles = 0
     private var resourceTotalFiles = 0
     private let downloadQueue = DispatchQueue(label: "com.launcher.download", qos: .userInitiated)
-    private let fileManager = FileManager.default
-    private let session: URLSession
     
     var onProgressUpdate: ((String, Int, Int, DownloadType) -> Void)?
     
@@ -109,10 +107,7 @@ class MinecraftFileManager {
     }
     
     // MARK: - Initialization
-    init(metaDirectory: URL, profileDirectory: URL) {
-        self.metaDirectory = metaDirectory
-        self.profileDirectory = profileDirectory
-        
+    init() {
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = Constants.downloadTimeout
         config.timeoutIntervalForResource = Constants.downloadTimeout
@@ -125,7 +120,7 @@ class MinecraftFileManager {
     func downloadVersionFiles(manifest: MinecraftVersionManifest) async throws {
         Logger.shared.info("开始下载 Minecraft 版本：\(manifest.id)")
         
-        try createDirectories(manifestId: manifest.id)
+        try createDirectories(manifestId: manifest.id, gameName: manifest.id)
         
         // Use bounded task groups to limit concurrency
         try await withThrowingTaskGroup(of: Void.self) { group in
@@ -147,15 +142,17 @@ class MinecraftFileManager {
         1 + manifest.libraries.count + 1 + 1 // Client JAR + Libraries + Asset index + Logging config
     }
     
-    private func createDirectories(manifestId: String) throws {
-        // Create all directories in one pass
+    private func createDirectories(manifestId: String, gameName: String) throws {
+        guard let metaDirectory = AppPaths.metaDirectory,
+              let profileDirectory = AppPaths.profileDirectory(gameName: gameName) else {
+            throw MinecraftFileManagerError.cannotCreateDirectory(URL(fileURLWithPath: ""))
+        }
         let directoriesToCreate = Constants.metaSubdirectories.map {
             metaDirectory.appendingPathComponent($0)
         } + [
             metaDirectory.appendingPathComponent("versions").appendingPathComponent(manifestId),
             profileDirectory
         ]
-        
         for directory in directoriesToCreate {
             if !fileManager.fileExists(atPath: directory.path) {
                 try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -183,6 +180,7 @@ class MinecraftFileManager {
     }
     
     private func downloadClientJar(manifest: MinecraftVersionManifest) async throws {
+        guard let metaDirectory = AppPaths.metaDirectory else { throw MinecraftFileManagerError.cannotWriteFile(URL(fileURLWithPath: ""), NSError()) }
         let versionDir = metaDirectory.appendingPathComponent("versions").appendingPathComponent(manifest.id)
         let destinationURL = versionDir.appendingPathComponent("\(manifest.id).jar")
         
@@ -190,18 +188,19 @@ class MinecraftFileManager {
             from: manifest.downloads.client.url,
             to: destinationURL,
             sha1: manifest.downloads.client.sha1,
-            fileNameForNotification: NSLocalizedString("file.client.jar", comment: ""),
+            fileNameForNotification: "file.client.jar".localized(),
             type: .core
         )
     }
     
     private func downloadLibraries(manifest: MinecraftVersionManifest) async throws {
+        guard let metaDirectory = AppPaths.metaDirectory else { throw MinecraftFileManagerError.cannotWriteFile(URL(fileURLWithPath: ""), NSError()) }
         Logger.shared.info("开始下载库文件")
         
         try await withThrowingTaskGroup(of: Void.self) { group in
             for library in manifest.libraries {
                 group.addTask { [weak self] in
-                    try await self?.downloadLibrary(MinecraftLibrary(from: library))
+                    try await self?.downloadLibrary(MinecraftLibrary(from: library), metaDirectory: metaDirectory)
                 }
             }
             
@@ -211,7 +210,7 @@ class MinecraftFileManager {
         Logger.shared.info("完成下载库文件")
     }
     
-    private func downloadLibrary(_ library: MinecraftLibrary) async throws {
+    private func downloadLibrary(_ library: MinecraftLibrary, metaDirectory: URL) async throws {
         if let downloads = library.downloads {
             if let artifact = downloads.artifact {
                 let destinationURL = metaDirectory.appendingPathComponent("libraries").appendingPathComponent(artifact.path)
@@ -219,13 +218,13 @@ class MinecraftFileManager {
                     from: artifact.url,
                     to: destinationURL,
                     sha1: artifact.sha1,
-                    fileNameForNotification: String(format: NSLocalizedString("file.library", comment: ""), library.name),
+                    fileNameForNotification: String(format: "file.library".localized(), library.name),
                     type: .core
                 )
             }
             
             if let classifiers = downloads.classifiers {
-                try await downloadNativeLibrary(library: library, classifiers: classifiers)
+                try await downloadNativeLibrary(library: library, classifiers: classifiers, metaDirectory: metaDirectory)
             }
         } else if let directURL = library.url {
             let libraryPath = library.name.replacingOccurrences(of: ":", with: "/")
@@ -235,13 +234,13 @@ class MinecraftFileManager {
                 from: directURL,
                 to: destinationURL,
                 sha1: nil,
-                fileNameForNotification: String(format: NSLocalizedString("file.library", comment: ""), library.name),
+                fileNameForNotification: String(format: "file.library".localized(), library.name),
                 type: .core
             )
         }
     }
     
-    private func downloadNativeLibrary(library: MinecraftLibrary, classifiers: [String: MinecraftArtifact]) async throws {
+    private func downloadNativeLibrary(library: MinecraftLibrary, classifiers: [String: MinecraftArtifact], metaDirectory: URL) async throws {
         #if os(macOS)
         let osClassifier = library.natives?["osx"]
         #elseif os(Linux)
@@ -259,13 +258,14 @@ class MinecraftFileManager {
                 from: nativeArtifact.url,
                 to: destinationURL,
                 sha1: nativeArtifact.sha1,
-                fileNameForNotification: String(format: NSLocalizedString("file.native", comment: ""), library.name),
+                fileNameForNotification: String(format: "file.native".localized(), library.name),
                 type: .core
             )
         }
     }
     
     private func downloadAssets(manifest: MinecraftVersionManifest) async throws {
+        guard AppPaths.metaDirectory != nil else { throw MinecraftFileManagerError.cannotWriteFile(URL(fileURLWithPath: ""), NSError()) }
         Logger.shared.info("开始下载 Minecraft 版本资源：\(manifest.id)")
         
         let assetIndex = try await downloadAssetIndex(manifest: manifest)
@@ -277,6 +277,7 @@ class MinecraftFileManager {
     }
     
     private func downloadAssetIndex(manifest: MinecraftVersionManifest) async throws -> MinecraftAssetIndex {
+        guard let metaDirectory = AppPaths.metaDirectory else { throw MinecraftFileManagerError.cannotWriteFile(URL(fileURLWithPath: ""), NSError()) }
         let destinationURL = metaDirectory.appendingPathComponent("assets/indexes").appendingPathComponent("\(manifest.assetIndex.id).json")
         
         if !fileManager.fileExists(atPath: destinationURL.path) {
@@ -284,7 +285,7 @@ class MinecraftFileManager {
                 from: manifest.assetIndex.url,
                 to: destinationURL,
                 sha1: manifest.assetIndex.sha1,
-                fileNameForNotification: NSLocalizedString("file.asset.index", comment: ""),
+                fileNameForNotification: "file.asset.index".localized(),
                 type: .core
             )
         }
@@ -315,6 +316,7 @@ class MinecraftFileManager {
     }
     
     private func downloadLoggingConfig(manifest: MinecraftVersionManifest) async throws {
+        guard let metaDirectory = AppPaths.metaDirectory else { throw MinecraftFileManagerError.cannotWriteFile(URL(fileURLWithPath: ""), NSError()) }
         let loggingFile = manifest.logging.client.file
         let versionDir = metaDirectory.appendingPathComponent("versions").appendingPathComponent(manifest.id)
         let destinationURL = versionDir.appendingPathComponent(loggingFile.id)
@@ -323,7 +325,7 @@ class MinecraftFileManager {
             from: loggingFile.url,
             to: destinationURL,
             sha1: loggingFile.sha1,
-            fileNameForNotification: NSLocalizedString("file.logging.config", comment: ""),
+            fileNameForNotification: "file.logging.config".localized(),
             type: .core
         )
     }
@@ -423,6 +425,7 @@ class MinecraftFileManager {
     }
     
     private func downloadAllAssets(assetIndex: MinecraftAssetIndex) async throws {
+        guard let metaDirectory = AppPaths.metaDirectory else { throw MinecraftFileManagerError.cannotWriteFile(URL(fileURLWithPath: ""), NSError()) }
         let objectsDirectory = metaDirectory.appendingPathComponent("assets/objects")
         let assets = Array(assetIndex.objects)
         
@@ -449,7 +452,7 @@ class MinecraftFileManager {
         
         if fileManager.fileExists(atPath: destinationURL.path) {
             if try await verifyExistingFile(at: destinationURL, expectedSha1: asset.hash) {
-                incrementCompletedFilesCount(fileName: String(format: NSLocalizedString("file.asset", comment: ""), path), type: .resources)
+                incrementCompletedFilesCount(fileName: String(format: "file.asset".localized(), path), type: .resources)
                 return
             }
         }
@@ -458,7 +461,7 @@ class MinecraftFileManager {
             from: asset.url,
             to: destinationURL,
             sha1: asset.hash,
-            fileNameForNotification: String(format: NSLocalizedString("file.asset", comment: ""), path),
+            fileNameForNotification: String(format: "file.asset".localized(), path),
             type: .resources
         )
     }

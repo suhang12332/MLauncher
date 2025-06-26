@@ -37,7 +37,7 @@
 
 "sidebar.resources.title" = "资源列表";
 "sidebar.games.title" = "游戏列表";
-
+"sidebar.search.games" = "搜索游戏";
 
 // 游戏内容
 "game.content.title" = "游戏内容";
@@ -81,7 +81,7 @@
 "settings.minecraft_versions_url.placeholder" = "请输入 Minecraft 版本资源地址";
 "settings.modrinth_api_url.placeholder" = "请输入 Modrinth API 地址";
 "settings.default_java_path.placeholder" = "请输入默认 Java 路径";
-"settings.player.placeholder" = "玩家设置将在这里";
+"settings.player.placeholder" = "玩家设置将显示在此处。";
 
 // Alert - Add Player
 "alert.add_player.title" = "添加玩家";
@@ -102,7 +102,10 @@
 "menu.sort.follows" = "关注数";
 "menu.sort.newest" = "最新";
 "menu.sort.updated" = "最近更新";
+
 "player.add" = "添加玩家";
+"player.remove" = "移除玩家";
+"player.remove.confirm" = "确定要移除 %@ 吗？";
 
 // Filter
 "filter.version.icon" = "🎮游戏版本";
@@ -205,3 +208,13 @@
 "file.asset.index" = "资源索引";
 "file.logging.config" = "日志配置";
 "file.asset" = "资源文件：%@";
+
+"delete.title" = "删除游戏版本";
+"delete.game.confirm" = "确定要删除游戏“%@”及其所有数据吗？(真的很久)";
+
+"game.not_found" = "未找到游戏";
+
+"sidebar.alert.no_player.title" = "没有玩家";
+"sidebar.alert.no_player.message" = "没有玩家信息，先添加玩家信息后，才可以添加游戏";
+
+"fabric.loader.title" = "Fabric 加载器";

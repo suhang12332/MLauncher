@@ -14,7 +14,7 @@ class SimpleOBJLoader {
         var texcoords: [SIMD2<Float>] = []
         var vertices: [SimpleVertex] = []
 
-        guard let content = try? String(contentsOf: url) else { return [] }
+        guard let content = try? String(contentsOf: url, encoding: .utf8) else { return [] }
         let lines = content.components(separatedBy: .newlines)
 
         for line in lines {

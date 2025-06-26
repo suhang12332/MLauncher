@@ -25,9 +25,11 @@ struct GameInfoDetailView: View {
     @Binding var searchText: String
     @Binding var selectedLoaders: [String]
     @Binding var gameType: String
-
+    @EnvironmentObject var gameRepository: GameRepository
     @State private var searchTextForResource: String = ""
-    
+    @State private var showDeleteAlert = false
+    @Binding var selectedItem: SidebarItem
+    @Binding var gameId: String?
     var body: some View {
         VStack {
             HStack(spacing: 16) { // Added spacing back as per original design
@@ -37,8 +39,8 @@ struct GameInfoDetailView: View {
                         .resizable()
                         .interpolation(.none)
                         .frame(width: 72, height: 72)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(12)
+//                        .background(Color.gray.opacity(0.1))
+//                        .cornerRadius(12)
                 } else {
                     // Fallback to system icon if decoding fails (e.g., empty string, invalid Base64)
                     Image(systemName: "cube.fill")
@@ -60,11 +62,11 @@ struct GameInfoDetailView: View {
                         Label(game.gameVersion, systemImage: "gamecontroller.fill")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        Label(game.modLoader, systemImage: "gamecontroller.fill")
+                        Label(game.modLoader, systemImage: "puzzlepiece.extension.fill")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         // game.lastPlayed is Date (non-optional)
-                        Label(game.lastPlayed.formattedDate(), systemImage: "clock.fill")
+                        Label(game.lastPlayed.formatted(.relative(presentation: .named)), systemImage: "clock.fill")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -74,11 +76,8 @@ struct GameInfoDetailView: View {
                 
                 // Actions
                 HStack(spacing: 12) { // Added spacing back as per original design
-                    
-                    
                     Button(action: {
-                        // Action for Play
-                        print("Play button tapped for \(game.gameName)")
+                        showDeleteAlert = true
                     }) {
                         Image(systemName: "trash.fill")
                             .padding(.vertical,6)
@@ -86,10 +85,18 @@ struct GameInfoDetailView: View {
                             .background(Color.accentColor)
                             .foregroundColor(.white)
                             .cornerRadius(8)
-                        
                     }
                     .buttonStyle(.plain)
-                    
+                    .alert(isPresented: $showDeleteAlert) {
+                        Alert(
+                            title: Text("delete.title".localized()),
+                            message: Text(String(format: "delete.game.confirm".localized(), game.gameName)),
+                            primaryButton: .destructive(Text("common.delete".localized())) {
+                                deleteGameAndProfile()
+                            },
+                            secondaryButton: .cancel(Text("common.cancel".localized()))
+                        )
+                    }
                 }
             }
             
@@ -114,6 +121,9 @@ struct GameInfoDetailView: View {
                         )
                         .onTapGesture {
                             selectedProjectId = mod.projectId
+                            if let type = ResourceType(rawValue: query) {
+                                    selectedItem = .resource(type)
+                            }
                         }
                     }
                 }
@@ -132,22 +142,19 @@ struct GameInfoDetailView: View {
                     selectedProjectId: $selectedProjectId,
                     searchText: $searchText,
                     selectedLoader: $selectedLoaders,
-                    gameInfo: game
+                    gameInfo: game,
+                    selectedItem: $selectedItem
                 ).id(query)
             }
             
         }
         // 3. 监听 gameResourcesType
         .onChange(of: query) { _,_ in
-            selectedVersions = [game.gameVersion]
-            Logger.shared.info(selectedLoaders)
             sortIndex = "relevance"
         }
         
         // 4. 监听 gameResourcesLocation
         .onChange(of: gameType) { _,_ in
-            selectedVersions = [game.gameVersion]
-            Logger.shared.info(selectedLoaders)
             currentPage = 1
             totalItems = 0
             sortIndex = "relevance"
@@ -167,6 +174,15 @@ struct GameInfoDetailView: View {
             return nsImage
         }
         return nil
+    }
+    
+    // MARK: - 删除游戏及其文件夹
+    private func deleteGameAndProfile() {
+        gameRepository.deleteGame(id: game.id)
+        if let profileDir = AppPaths.profileDirectory(gameName: game.gameName) {
+            try? FileManager.default.removeItem(at: profileDir)
+        }
+        selectedItem = .resource(.mod)
     }
 }
 

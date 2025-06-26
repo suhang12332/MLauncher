@@ -1,0 +1,304 @@
+1,3d0
+< "common.cancel" = "取消";
+< "common.confirm" = "确认";
+< 
+5,7c2,5
+< "error.invalid_username" = "无效的用户名";
+< "error.encoding" = "字符串编码错误";
+< "error.uuid_generation" = "UUID生成失败";
+---
+> "error.invalid_username" = "無效的用戶名";
+> "error.encoding" = "字串編碼錯誤";
+> "error.uuid_generation" = "UUID生成失敗";
+> 
+9,10c7
+< "time.hours_minutes" = "%d小时%d分钟";
+< "addgame" = "添加游戏";
+---
+> "time.hours_minutes" = "%d小時%d分鐘";
+12,17c9,11
+< "player.status.playing" = "正在游玩";
+< "player.status.last_played" = "最后游玩：%@";
+< // Sidebar Navigation
+< "sidebar.games" = "游戏";
+< "sidebar.resources" = "资源";
+< "sidebar.select_item" = "请选择项目";
+---
+> "player.status.playing" = "正在遊玩";
+> "player.status.last_played" = "最後遊玩：%@";
+> // 通用
+20,33c14,23
+< // Resource Types
+< "resource.mod" = "模组";
+< "resource.datapack" = "数据包";
+< "resource.shader" = "光影";
+< "resource.resourcepack" = "资源包";
+< "resource.modpack" = "整合包";
+< // Game Sidebar
+< "game.sidebar.title" = "游戏信息";
+< // 侧边栏
+< "sidebar.resources.title" = "资源列表";
+< "sidebar.games.title" = "游戏列表";
+< "sidebar.search.games" = "搜索游戏";
+< // 游戏内容
+< "game.content.title" = "游戏内容";
+---
+> // 側邊欄
+> "sidebar.title" = "MLauncher";
+> "sidebar.select_item" = "請選擇項目";
+> "sidebar.resources.title" = "資源列表";
+> "sidebar.games.title" = "遊戲列表";
+> // 詳情視圖
+> "detail.title" = "詳情";
+> "detail.select_item" = "請從左側選擇一項";
+> // 遊戲內容
+> "game.content.title" = "遊戲內容";
+35,42c25,32
+< "game.content.last_played" = "上次游玩";
+< "game.content.play_time" = "游戏时长";
+< "game.content.play_button" = "开始游戏";
+< "game.content.settings_button" = "游戏设置";
+< // 资源内容
+< "resource.content.title" = "资源内容";
+< "resource.content.type.mod" = "模组";
+< "resource.content.type.datapack" = "数据包";
+---
+> "game.content.last_played" = "上次遊玩";
+> "game.content.play_time" = "遊戲時長";
+> "game.content.play_button" = "開始遊戲";
+> "game.content.settings_button" = "遊戲設置";
+> // 資源內容
+> "resource.content.title" = "資源內容";
+> "resource.content.type.mod" = "模組";
+> "resource.content.type.datapack" = "數據包";
+44c34
+< "resource.content.type.resourcepack" = "资源包";
+---
+> "resource.content.type.resourcepack" = "資源包";
+46,48c36,38
+< "resource.content.type.server" = "资源库";
+< "resource.content.type.local" = "已安装";
+< // 语言选择
+---
+> "resource.content.type.server" = "資源庫";
+> "resource.content.type.local" = "已安裝";
+> // 語言選擇
+52,54c42,44
+< // 设置
+< "settings.language.title" = "语言设置";
+< "settings.language.picker" = "选择语言";
+---
+> // 設置
+> "settings.language.title" = "語言設置";
+> "settings.language.picker" = "選擇語言";
+57,58c47,48
+< "settings.game.tab" = "游戏";
+< "settings.minecraft_versions_url.label" = "Minecraft 版本资源地址";
+---
+> "settings.game.tab" = "遊戲";
+> "settings.minecraft_versions_url.label" = "Minecraft 版本資源地址";
+60,62c50,52
+< "settings.default_java_path.label" = "默认 Java 路径";
+< "settings.default_memory_allocation.label" = "默认内存分配";
+< "settings.concurrent_downloads.label" = "下载并发数";
+---
+> "settings.default_java_path.label" = "預設 Java 路徑";
+> "settings.default_memory_allocation.label" = "預設記憶體分配";
+> "settings.concurrent_downloads.label" = "下載並發數";
+66,70c56,60
+< "settings.game.title" = "游戏";
+< "settings.minecraft_versions_url.placeholder" = "请输入 Minecraft 版本资源地址";
+< "settings.modrinth_api_url.placeholder" = "请输入 Modrinth API 地址";
+< "settings.default_java_path.placeholder" = "请输入默认 Java 路径";
+< "settings.player.placeholder" = "玩家设置将显示在此处。";
+---
+> "settings.game.title" = "遊戲";
+> "settings.minecraft_versions_url.placeholder" = "請輸入 Minecraft 版本資源地址";
+> "settings.modrinth_api_url.placeholder" = "請輸入 Modrinth API 地址";
+> "settings.default_java_path.placeholder" = "請輸入預設 Java 路徑";
+> "settings.player.placeholder" = "玩家設置將在這裡";
+73,74c63,64
+< "alert.add_player.message" = "请输入玩家名称，注意：玩家名称必须唯一，已存在的玩家名称将无法添加";
+< "alert.add_player.placeholder" = "玩家名称";
+---
+> "alert.add_player.message" = "請輸入玩家名稱，注意：玩家名稱必須唯一，已存在的玩家名稱將無法添加";
+> "alert.add_player.placeholder" = "玩家名稱";
+76,80c66,84
+< "alert.button.add" = "添加"; 
+< // Common
+< "result.empty" = "查询结果为空";
+< "result.error" = "😩查询错误，请稍后再试!";
+< // toolbar
+---
+> "alert.button.add" = "添加";
+> // 主題設置
+> "settings.theme.title" = "主題設置";
+> "settings.theme.picker" = "選擇主題";
+> "settings.theme.system" = "跟隨系統";
+> "settings.theme.light" = "淺色";
+> "settings.theme.dark" = "深色"; 
+> "common.cancel" = "取消";
+> "common.confirm" = "確認";
+> "addgame" = "添加遊戲";
+> "sidebar.games" = "遊戲";
+> "sidebar.resources" = "資源";
+> "resource.mod" = "模組";
+> "resource.datapack" = "數據包";
+> "resource.shader" = "光影";
+> "resource.resourcepack" = "資源包";
+> "resource.modpack" = "整合包";
+> "result.empty" = "查詢結果為空";
+> "result.error" = "查詢錯誤，請稍後再試!";
+82,84c86,88
+< "menu.sort.relevance" = "相关度";
+< "menu.sort.downloads" = "下载量";
+< "menu.sort.follows" = "关注数";
+---
+> "menu.sort.relevance" = "相關度";
+> "menu.sort.downloads" = "下載量";
+> "menu.sort.follows" = "關注數";
+88,94c92,97
+< // Filter
+< "filter.version.icon" = "🎮游戏版本";
+< "filter.version" = "游戏版本";
+< "filter.category" = "分类";
+< "filter.environment" = "环境";
+< "filter.loader" = "加载器";
+< "filter.behavior" = "行为";
+---
+> "filter.version.icon" = "遊戲版本";
+> "filter.version" = "遊戲版本";
+> "filter.category" = "分類";
+> "filter.environment" = "環境";
+> "filter.loader" = "加載器";
+> "filter.behavior" = "行為";
+97,101c100,102
+< "category.loading" = "正在加载%@...";
+< // Environment
+< "environment.client" = "客户端";
+< "environment.server" = "服务端"; 
+< // Platform Support
+---
+> "category.loading" = "正在加載%@...";
+> "environment.client" = "客戶端";
+> "environment.server" = "服務端";
+104,105c105,106
+< "platform.client.optional" = "可选";
+< "platform.server.optional" = "可选";
+---
+> "platform.client.optional" = "可選";
+> "platform.server.optional" = "可選";
+109d109
+< // Game Versions
+111c111
+< "game.versions.numeric" = "数字版本";
+---
+> "game.versions.numeric" = "數字版本";
+113,114c113
+< "game.versions.filter" = "过滤版本";
+< // Project Info Sections
+---
+> "game.versions.filter" = "過濾版本";
+119,126c118,125
+< "project.info.platforms" = "Mod 加载器：";
+< "project.info.environments" = "支持环境";
+< "project.info.environments.client" = "客户端：";
+< "project.info.environments.server" = "服务端：";
+< "project.info.links" = "链接";
+< "project.info.links.issues" = "报告问题";
+< "project.info.links.source" = "查看源码";
+< "project.info.links.wiki" = "访问维基";
+---
+> "project.info.platforms" = "Mod 加載器：";
+> "project.info.environments" = "支持環境";
+> "project.info.environments.client" = "客戶端：";
+> "project.info.environments.server" = "服務端：";
+> "project.info.links" = "鏈接";
+> "project.info.links.issues" = "報告問題";
+> "project.info.links.source" = "查看源碼";
+> "project.info.links.wiki" = "訪問維基";
+128,130c127,129
+< "project.info.links.donate" = "捐赠";
+< "project.info.creators" = "创作者";
+< "project.info.creators.moderator" = "社区管理员";
+---
+> "project.info.links.donate" = "捐贈";
+> "project.info.creators" = "創作者";
+> "project.info.creators.moderator" = "社區管理員";
+132,150c131,134
+< "project.info.details" = "详情";
+< "project.info.details.licensed" = "许可证";
+< "project.info.details.published" = "发布时间";
+< "project.info.details.updated" = "更新时间";
+< // 主题设置
+< "settings.theme.title" = "主题设置";
+< "settings.theme.picker" = "选择主题";
+< "settings.theme.system" = "跟随系统";
+< "settings.theme.light" = "浅色";
+< "settings.theme.dark" = "深色"; 
+< // Version table columns
+< "versions.name" = "版本";
+< "versions.game_versions" = "游戏版本";
+< "versions.loaders" = "加载器";
+< "versions.type" = "类型";
+< "versions.downloads" = "下载量";
+< "versions.date" = "发布日期";
+< "versions.loading" = "正在加载版本信息...";
+< "versions.platforms" = "平台";
+---
+> "project.info.details" = "詳情";
+> "project.info.details.licensed" = "許可證";
+> "project.info.details.published" = "發布時間";
+> "project.info.details.updated" = "更新時間";
+152,161c136,143
+< // Game Form
+< "game.form.title" = "添加游戏";
+< "game.form.icon" = "游戏图标";
+< "game.form.icon.description" = "为游戏选择图标";
+< "game.form.name" = "游戏名称";
+< "game.form.name.placeholder" = "请输入游戏名称";
+< "game.form.version" = "游戏版本";
+< "game.form.modloader" = "mod加载器";
+< "game.form.save.error" = "保存游戏信息失败";
+< // Download Progress
+---
+> "game.form.title" = "添加遊戲";
+> "game.form.icon" = "遊戲圖標";
+> "game.form.icon.description" = "為遊戲選擇圖標";
+> "game.form.name" = "遊戲名稱";
+> "game.form.name.placeholder" = "請輸入遊戲名稱";
+> "game.form.version" = "遊戲版本";
+> "game.form.modloader" = "mod加載器";
+> "game.form.save.error" = "保存遊戲信息失敗";
+163,165c145,147
+< "download.resources.title" = "资源文件";
+< "download.progress" = "进度：%d%%";
+< "download.current.file" = "当前文件：%@";
+---
+> "download.resources.title" = "資源文件";
+> "download.progress" = "進度：%d%%";
+> "download.current.file" = "當前文件：%@";
+167,184c149,152
+< // Notification
+< "notification.download.complete.title" = "下载完成";
+< "notification.download.complete.body" = "%@ (版本: %@, 加载器: %@) 已成功下载。";
+< "notification.download.failed.title" = "下载失败";
+< "notification.download.failed.body" = "%@ (版本: %@, 加载器: %@) 下载失败: %@";
+< // File Names
+< "file.client.jar" = "客户端文件";
+< "file.library" = "库文件：%@";
+< "file.native" = "原生库：%@";
+< "file.asset.index" = "资源索引";
+< "file.logging.config" = "日志配置";
+< "file.asset" = "资源文件：%@";
+< "delete.title" = "删除游戏版本";
+< "delete.game.confirm" = "确定要删除游戏“%@”及其所有数据吗？(真的很久)";
+< "game.not_found" = "未找到游戏";
+< /* Sidebar Alerts */
+< "sidebar.alert.no_player.title" = "未选择玩家";
+< "sidebar.alert.no_player.message" = "添加新游戏前，请先创建或选择一个玩家。";
+---
+> "notification.download.complete.title" = "下載完成";
+> "notification.download.complete.body" = "%@ (版本: %@, 加載器: %@) 已成功下載。";
+> "notification.download.failed.title" = "下載失敗";
+> "notification.download.failed.body" = "%@ (版本: %@, 加載器: %@) 下載失敗: %@"; 

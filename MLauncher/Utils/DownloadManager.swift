@@ -38,14 +38,23 @@ class DownloadManager {
             throw NSError(domain: "DownloadManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "未知资源类型"])
         }
         let fileManager = FileManager.default
-        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appName = Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "MLauncher"
-        let baseDir = appSupport.appendingPathComponent(appName)
-        let gameDir = baseDir.appendingPathComponent("profiles").appendingPathComponent(game.gameName)
-        let resourceDir = gameDir.appendingPathComponent(type.folderName)
-        try fileManager.createDirectory(at: resourceDir, withIntermediateDirectories: true, attributes: nil)
+        let resourceDir: URL?
+        switch type {
+        case .mod:
+            resourceDir = AppPaths.modsDirectory(gameName: game.gameName)
+        case .datapack:
+            resourceDir = AppPaths.datapacksDirectory(gameName: game.gameName)
+        case .shader:
+            resourceDir = AppPaths.shaderpacksDirectory(gameName: game.gameName)
+        case .resourcepack:
+            resourceDir = AppPaths.resourcepacksDirectory(gameName: game.gameName)
+        }
+        guard let resourceDirUnwrapped = resourceDir else {
+            throw NSError(domain: "DownloadManager", code: 2, userInfo: [NSLocalizedDescriptionKey: "资源目录获取失败"])
+        }
+        try fileManager.createDirectory(at: resourceDirUnwrapped, withIntermediateDirectories: true, attributes: nil)
         let fileName = url.lastPathComponent
-        let destURL = resourceDir.appendingPathComponent(fileName)
+        let destURL = resourceDirUnwrapped.appendingPathComponent(fileName)
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw URLError(.badServerResponse)

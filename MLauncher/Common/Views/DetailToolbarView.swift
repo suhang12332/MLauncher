@@ -2,7 +2,7 @@ import SwiftUI
 
 /// 详情区域工具栏内容
 public struct DetailToolbarView: ToolbarContent {
-    let selectedItem: SidebarItem
+    @Binding var selectedItem: SidebarItem
     
     @EnvironmentObject var playerListViewModel: PlayerListViewModel  // Get the shared view model
     @Binding var sortIndex: String
@@ -21,6 +21,7 @@ public struct DetailToolbarView: ToolbarContent {
     @Binding var selectProjectId: String?
     @Binding var selectedTab: Int
     @Binding var searchText: String
+    @Binding var gameId: String?
 
     // MARK: - Computed Properties
     var totalPages: Int {
@@ -34,13 +35,21 @@ public struct DetailToolbarView: ToolbarContent {
         }
     }
 
+    // 新增：当前选中游戏
+    private var currentGame: GameVersionInfo? {
+        if case .game(let gameId) = selectedItem {
+            return gameRepository.getGame(by: gameId)
+        }
+        return nil
+    }
+
     public var body: some ToolbarContent {
 
         // 根据 selectedItem 定制工具栏内容
         ToolbarItemGroup(placement: .primaryAction) {
             switch selectedItem {
-            case .game(let gameId):
-                if let game = gameRepository.getGame(by: gameId) {
+            case .game:
+                if let game = currentGame {
                     if "local" != resourceType {
                         sortMenu
                     }
@@ -87,9 +96,14 @@ public struct DetailToolbarView: ToolbarContent {
                         selectedTab: $selectedTab,
                         versionCurrentPage: $versionCurrentPage,
                         versionTotal: $versionTotal,
+                        gameId: $gameId,
                         onBack: {
-                            selectProjectId = nil
-                            selectedTab = 0
+                            if let id = gameId {
+                                selectedItem = .game(id)
+                            }else{
+                                selectProjectId = nil
+                                selectedTab = 0
+                            }
                         }
                     )
                 } else {
@@ -132,10 +146,7 @@ public struct DetailToolbarView: ToolbarContent {
     }
     private var resourcesMenu: some View {
         Menu {
-            ForEach(
-                ["mod", "datapack", "shader", "resourcepack"],
-                id: \.self
-            ) { sort in
+            ForEach(resourceTypesForCurrentGame, id: \.self) { sort in
                 Button(
                     "resource.content.type.\(sort)".localized()
                 ) {
@@ -188,5 +199,12 @@ public struct DetailToolbarView: ToolbarContent {
             }
             .disabled(currentPage == totalPages)
         }
+    }
+    private var resourceTypesForCurrentGame: [String] {
+        var types = ["datapack", "shader", "resourcepack"]
+        if let game = currentGame, game.modLoader.lowercased() != "vanilla" {
+            types.insert("mod", at: 0)
+        }
+        return types
     }
 }
