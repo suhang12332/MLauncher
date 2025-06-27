@@ -73,6 +73,7 @@
 "settings.default_java_path.label" = "默认 Java 路径";
 "settings.default_memory_allocation.label" = "默认内存分配";
 "settings.concurrent_downloads.label" = "下载并发数";
+"settings.auto_download_dependencies.label" = "自动下载前置Mod（依赖）";
 
 // Settings - Titles and Placeholders
 "settings.general.title" = "通用";
@@ -218,3 +219,7 @@
 "sidebar.alert.no_player.message" = "没有玩家信息，先添加玩家信息后，才可以添加游戏";
 
 "fabric.loader.title" = "Fabric 加载器";
+
+"resource.add" = "添加";
+"resource.installed" = "已安装";
+"common.delete" = "删除";

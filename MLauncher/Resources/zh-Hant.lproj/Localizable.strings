@@ -50,6 +50,7 @@
 "settings.default_java_path.label" = "預設 Java 路徑";
 "settings.default_memory_allocation.label" = "預設記憶體分配";
 "settings.concurrent_downloads.label" = "下載並發數";
+"settings.auto_download_dependencies.label" = "自動下載前置Mod（依賴）";
 // Settings - Titles and Placeholders
 "settings.general.title" = "通用";
 "settings.player.title" = "玩家";
@@ -149,4 +150,8 @@
 "notification.download.complete.title" = "下載完成";
 "notification.download.complete.body" = "%@ (版本: %@, 加載器: %@) 已成功下載。";
 "notification.download.failed.title" = "下載失敗";
-"notification.download.failed.body" = "%@ (版本: %@, 加載器: %@) 下載失敗: %@"; 
+"notification.download.failed.body" = "%@ (版本: %@, 加載器: %@) 下載失敗: %@";
+"resource.add" = "+ 新增";
+"resource.installed" = "已安裝";
+"common.delete" = "刪除";
+"resource.delete.confirm" = "確定要刪除資源「%@」嗎？"; 

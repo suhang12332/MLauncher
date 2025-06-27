@@ -114,11 +114,14 @@ struct GameFormView: View {
     // MARK: - Body
     var body: some View {
         VStack(spacing: 0) {
-            headerView
+            headerView.padding(.horizontal).padding()
             Divider()
             formContentView
+                .padding(.horizontal)
+                .padding()
             Divider()
-            footerView
+            footerView.padding(.horizontal)
+                .padding()
         }
         .fileImporter(
             isPresented: $showImagePicker,
@@ -127,12 +130,7 @@ struct GameFormView: View {
         ) { result in
             handleImagePickerResult(result)
         }
-        .onChange(of: selectedModLoader) { _, _ in
-            updateFabricLoaderVersionIfNeeded()
-        }
-        .onChange(of: selectedGameVersion) { _, _ in
-            updateFabricLoaderVersionIfNeeded()
-        }
+        
         .task {
             // Request notification authorization and load versions
             do {
@@ -162,12 +160,10 @@ struct GameFormView: View {
         HStack {
             Text("game.form.title".localized())
                 .font(.headline)
-                .padding(Constants.formSpacing)
             Spacer()
             Image(systemName: "link")
                 .font(.headline)
                 .foregroundColor(.secondary)
-                .padding(Constants.formSpacing)
         }
     }
 
@@ -179,7 +175,7 @@ struct GameFormView: View {
                 downloadProgressSection
             }
         }
-        .padding(Constants.formSpacing)
+
     }
 
     private var gameIconAndVersionSection: some View {
@@ -222,17 +218,24 @@ struct GameFormView: View {
             .frame(width: Constants.iconSize, height: Constants.iconSize)
             .clipShape(RoundedRectangle(cornerRadius: Constants.cornerRadius))
             .onTapGesture {
-                showImagePicker = true
+                if !downloadState.isDownloading {
+                    showImagePicker = true
+                }
             }
             .onDrop(of: [UTType.image.identifier], isTargeted: nil) {
                 providers in
-                handleImageDrop(providers)
+                if !downloadState.isDownloading {
+                    handleImageDrop(providers)
+                } else {
+                    false
+                }
             }
 
             Text("game.form.icon.description".localized())
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
+        .disabled(downloadState.isDownloading)
     }
 
     private var gameVersionAndLoaderView: some View {
@@ -247,6 +250,7 @@ struct GameFormView: View {
             selected: $selectedGameVersion,
             versions: mojangVersions
         )
+        .disabled(downloadState.isDownloading)
     }
 
     private var modLoaderPicker: some View {
@@ -260,6 +264,7 @@ struct GameFormView: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
+            .disabled(downloadState.isDownloading)
         }
     }
 
@@ -271,11 +276,12 @@ struct GameFormView: View {
                 text: $gameName,
                 isFocused: $isGameNameFocused
             )
+            .disabled(downloadState.isDownloading)
         }
     }
 
     private var downloadProgressSection: some View {
-        VStack(spacing: Constants.formSpacing) {
+        VStack {
             FormSection {
                 DownloadProgressRow(
                     title: "download.core.title".localized(),
@@ -312,7 +318,7 @@ struct GameFormView: View {
     }
 
     private var footerView: some View {
-        HStack(spacing: 12) {
+        HStack {
             Spacer()
             Button("common.cancel".localized()) {
                 // Cancel download task if it exists, otherwise dismiss
@@ -333,18 +339,18 @@ struct GameFormView: View {
                 }
             } label: {
                 HStack {
-                    Text("common.confirm".localized())
+                    
                     if downloadState.isDownloading {
                         ProgressView()
                             .controlSize(.small)
+                    }else{
+                        Text("common.confirm".localized())
                     }
                 }
             }
             .keyboardShortcut(.defaultAction)
             .disabled(!isFormValid || downloadState.isDownloading)
         }
-        .padding(.vertical, 20)
-        .padding(.trailing, Constants.formSpacing)
     }
 
     // MARK: - Helper Methods
@@ -819,16 +825,9 @@ private struct FormSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             content
-                .padding(16)
+                .padding(.top,6)
+                .padding(.bottom,6)
         }
-        .background(
-            RoundedRectangle(cornerRadius: Constants.cornerRadius)
-                .fill(Color(NSColor.quaternarySystemFill))
-                .overlay(
-                    RoundedRectangle(cornerRadius: Constants.cornerRadius)
-                        .stroke(Color.gray.opacity(0.13), lineWidth: 0.7)
-                )
-        )
     }
 }
 
@@ -859,7 +858,7 @@ private struct DownloadProgressRow: View {
     let total: Int
     let version: String?
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading) {
             HStack {
                 Text(title)
                     .font(.headline)
@@ -1007,3 +1006,4 @@ private struct CustomVersionPicker: View {
         .fixedSize()
     }
 }
+

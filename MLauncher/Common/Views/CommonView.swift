@@ -27,7 +27,3 @@ func EmptyResultView() -> some View {
     }
     
 }
-
-#Preview {
-    EmptyResultView()
-}

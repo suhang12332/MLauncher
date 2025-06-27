@@ -125,7 +125,8 @@ struct ModrinthDetailView: View {
                 selectedVersions: selectedVersions,
                 selectedLoaders: selectedLoader,
                 gameInfo: gameInfo,
-                query: query
+                query: query,
+                type: "server"
             )
             .padding(.vertical, ModrinthConstants.UI.verticalPadding)
             .listRowInsets(

@@ -58,6 +58,7 @@
 "settings.default_java_path.label" = "Default Java Path";
 "settings.default_memory_allocation.label" = "Default Memory Allocation";
 "settings.concurrent_downloads.label" = "Concurrent Downloads";
+"settings.auto_download_dependencies.label" = "Auto download dependencies (mods required by other mods)";
 
 // Settings - Titles and Placeholders
 "settings.general.title" = "General";
@@ -153,6 +154,9 @@
 "resource.shader" = "Shader";
 "resource.resourcepack" = "Resource Pack";
 "resource.modpack" = "Modpack";
+"resource.add" = "+ Add";
+"resource.installed" = "Installed";
+"common.delete" = "Delete";
 
 // Alert
 "alert.add_player.title" = "Add Player";
@@ -187,3 +191,4 @@
 "platform.client.unsupported" = "Unsupported";
 "platform.server.unsupported" = "Unsupported";
 "platform.support" = "Platform Support"; 
+"resource.delete.confirm" = "Are you sure you want to delete resource \"%@\"?"; 

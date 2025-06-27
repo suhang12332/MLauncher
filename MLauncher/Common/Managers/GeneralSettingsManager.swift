@@ -1,7 +1,6 @@
 import Foundation
 import SwiftUI
 
-/// 主题模式
 public enum ThemeMode: String, CaseIterable {
     case system = "system"
     case light = "light"
@@ -10,24 +9,9 @@ public enum ThemeMode: String, CaseIterable {
     public var localizedName: String {
         "settings.theme.\(rawValue)".localized()
     }
-}
-
-/// 主题管理器
-/// 用于管理应用的主题设置和切换
-public class ThemeManager: ObservableObject {
-    /// 单例实例
-    public static let shared = ThemeManager()
     
-    /// 主题模式
-    @AppStorage("themeMode") public var themeMode: ThemeMode = .system {
-        didSet {
-            objectWillChange.send()
-        }
-    }
-    
-    /// 获取当前主题的 ColorScheme
     public var colorScheme: ColorScheme? {
-        switch themeMode {
+        switch self {
         case .light:
             return .light
         case .dark:
@@ -36,6 +20,17 @@ public class ThemeManager: ObservableObject {
             return nil
         }
     }
+}
+
+class GeneralSettingsManager: ObservableObject {
+    static let shared = GeneralSettingsManager()
+    
+    @AppStorage("selectedLanguage") public var selectedLanguage: String = Locale.preferredLanguages.first ?? "zh-Hans" {
+        didSet { objectWillChange.send() }
+    }
+    @AppStorage("themeMode") public var themeMode: ThemeMode = .system {
+        didSet { objectWillChange.send() }
+    }
     
     private init() {}
-} 
+}

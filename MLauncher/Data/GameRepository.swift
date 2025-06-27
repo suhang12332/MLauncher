@@ -134,12 +134,11 @@ class GameRepository: ObservableObject {
     ///   - id: 游戏 ID
     ///   - resources: 新的资源列表
     /// - Returns: 是否更新成功
-    func updateResources(id: String, resources: [ModrinthProject]) -> Bool {
+    func updateResources(id: String, resources: [ModrinthProjectDetail]) -> Bool {
         guard let index = games.firstIndex(where: { $0.id == id }) else {
             Logger.shared.warning("找不到要更新资源列表的游戏：\(id)")
             return false
         }
-        
         var game = games[index]
         game.resources = resources
         games[index] = game
@@ -152,14 +151,13 @@ class GameRepository: ObservableObject {
     ///   - id: 游戏 ID
     ///   - resource: 要添加的资源
     /// - Returns: 是否添加成功
-    func addResource(id: String, resource: ModrinthProject) -> Bool {
+    func addResource(id: String, resource: ModrinthProjectDetail) -> Bool {
         guard let index = games.firstIndex(where: { $0.id == id }) else {
             Logger.shared.warning("找不到要添加资源的游戏：\(id)")
             return false
         }
-        
         var game = games[index]
-        if !game.resources.contains(where: { $0.projectId == resource.projectId }) {
+        if !game.resources.contains(where: { $0.id == resource.id }) {
             game.resources.append(resource)
             games[index] = game
             saveGames()
@@ -171,16 +169,15 @@ class GameRepository: ObservableObject {
     /// 移除单个游戏资源
     /// - Parameters:
     ///   - id: 游戏 ID
-    ///   - resourceId: 要移除的资源 ID
+    ///   - projectId: 要移除的资源 projectId
     /// - Returns: 是否移除成功
-    func removeResource(id: String, resourceId: String) -> Bool {
+    func removeResource(id: String, projectId: String) -> Bool {
         guard let index = games.firstIndex(where: { $0.id == id }) else {
             Logger.shared.warning("找不到要移除资源的游戏：\(id)")
             return false
         }
-        
         var game = games[index]
-        if let resourceIndex = game.resources.firstIndex(where: { $0.projectId == resourceId }) {
+        if let resourceIndex = game.resources.firstIndex(where: { $0.id == projectId }) {
             game.resources.remove(at: resourceIndex)
             games[index] = game
             saveGames()

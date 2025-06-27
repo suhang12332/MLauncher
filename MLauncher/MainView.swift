@@ -11,8 +11,7 @@ struct MainView: View {
     @State private var columnVisibility = NavigationSplitViewVisibility.all
     @State private var selectedItem: SidebarItem = SidebarItem.resource(.mod)
     @State private var games: [String] = []  // 这里应该从数据源获取游戏列表
-    @ObservedObject private var lang = LanguageManager.shared
-    @ObservedObject private var theme = ThemeManager.shared
+    @ObservedObject private var general = GeneralSettingsManager.shared
     @EnvironmentObject var gameRepository: GameRepository
     // 分页相关
     @State private var currentPage: Int = 1
@@ -104,20 +103,21 @@ struct MainView: View {
 
         }
         .onChange(of: selectedItem) { value, newValue in
-            gameResourcesLocation = "local"
             // 资源跳转到游戏
             if case .resource = value, case .game(let id) = newValue {
+                gameResourcesLocation = "local"
                 let game = gameRepository.getGame(by: id)
                 if game?.modLoader.lowercased() == "vanilla" {
                     gameResourcesType = "datapack"
-                }else{
+                } else {
                     gameResourcesType = "mod"
                 }
                 gameId = id
                 selectedProjectId = nil
             }
             // 游戏跳转到详情
-            if case .resource = newValue, case .game(_) = value {
+            else if case .resource = newValue, case .game(_) = value {
+                gameResourcesLocation = "server"
                 sortIndex = "relevance"
                 gameResourcesType = "mod"
                 currentPage = 1
@@ -137,23 +137,21 @@ struct MainView: View {
                 if selectedProjectId == nil {
                     gameId = nil
                 }
-
             }
             // 游戏跳转到游戏
-            if case .game(let id) = newValue, case .game(_) = value {
+            else if case .game(let id) = newValue, case .game(_) = value {
+                gameResourcesLocation = "local"
                 let game = gameRepository.getGame(by: id)
                 if game?.modLoader.lowercased() == "vanilla" {
                     gameResourcesType = "datapack"
-                }else{
+                } else {
                     gameResourcesType = "mod"
                 }
                 gameId = id
             }
-            
             // 游戏跳转到资源
-            
-            
-            if case .resource(_) = newValue,case .resource(_) = value {
+            else if case .resource(_) = newValue, case .resource(_) = value {
+                gameResourcesLocation = "server"
                 sortIndex = "relevance"
                 gameResourcesType = "mod"
                 currentPage = 1
@@ -173,16 +171,13 @@ struct MainView: View {
                 searchText = ""
                 gameId = nil
             }
-            
         }
         .onChange(of: selectedProjectId) { old, new in
             // Reset loaded project detail when selected project changes
             loadedProjectDetail = nil
             
         }
-        
-        .preferredColorScheme(theme.colorScheme)
+        .preferredColorScheme(general.themeMode.colorScheme)
     }
-
 }
 

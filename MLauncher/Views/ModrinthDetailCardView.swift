@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct ModrinthDetailCardView: View {
     // MARK: - Properties
@@ -7,8 +8,11 @@ struct ModrinthDetailCardView: View {
     let selectedLoaders: [String]
     let gameInfo: GameVersionInfo?
     let query: String
+    let type: String
     
     @State private var addButtonState: AddButtonState = .idle
+    @State private var showDeleteAlert = false
+    
     enum AddButtonState {
         case idle
         case loading
@@ -52,7 +56,6 @@ struct ModrinthDetailCardView: View {
                 .frame(width: ModrinthConstants.UI.iconSize, height: ModrinthConstants.UI.iconSize)
                 .cornerRadius(ModrinthConstants.UI.cornerRadius)
                 .clipped()
-                .id(url)
             } else {
                 Color.gray.opacity(0.2)
                     .frame(
@@ -108,7 +111,15 @@ struct ModrinthDetailCardView: View {
         VStack(alignment: .trailing, spacing: ModrinthConstants.UI.spacing) {
             downloadInfoView
             followerInfoView
-            addButton
+            AddOrDeleteResourceButton(
+                project: project,
+                selectedVersions: selectedVersions,
+                selectedLoaders: selectedLoaders,
+                gameInfo: gameInfo,
+                query: query,
+                type: type
+            )
+            .environmentObject(gameRepository)
         }
     }
     
@@ -132,80 +143,6 @@ struct ModrinthDetailCardView: View {
         .foregroundColor(.secondary)
     }
     
-    private var addButton: some View {
-        Button(action: {
-            guard addButtonState == .idle else { return }
-            addButtonState = .loading
-            Task {
-                do {
-                    let filteredVersions = try await ModrinthService.fetchProjectVersionsFilter(
-                        id: project.projectId,
-                        selectedVersions: selectedVersions,
-                        selectedLoaders: selectedLoaders
-                    )
-                    if let latestVersion = filteredVersions.first,
-                       let fileURL = latestVersion.files.first?.url,
-                       let gameInfo = gameInfo {
-                        _ = try await DownloadManager.downloadResource(
-                            for: gameInfo,
-                            urlString: fileURL,
-                            resourceType: query
-                        )
-                        let resourceToAdd = ModrinthProject(
-                            projectId: project.projectId,
-                            projectType: project.projectType,
-                            slug: project.slug,
-                            author: project.author,
-                            title: project.title,
-                            description: project.description,
-                            categories: project.categories,
-                            displayCategories: project.displayCategories,
-                            versions: project.versions,
-                            downloads: project.downloads,
-                            follows: project.follows,
-                            iconUrl: project.iconUrl,
-                            dateCreated: project.dateCreated,
-                            dateModified: project.dateModified,
-                            latestVersion: project.latestVersion,
-                            license: project.license,
-                            clientSide: project.clientSide,
-                            serverSide: project.serverSide,
-                            gallery: project.gallery,
-                            featuredGallery: project.featuredGallery,
-                            type: query,
-                            color: project.color
-                        )
-                        _ = gameRepository.addResource(id: gameInfo.id, resource: resourceToAdd)
-                        addButtonState = .installed
-                    } else {
-                        addButtonState = .idle
-                    }
-                } catch {
-                    print("Error fetching versions or downloading: \(error)")
-                    addButtonState = .idle
-                }
-            }
-        }) {
-            switch addButtonState {
-            case .idle:
-                Text("+ Add")
-            case .loading:
-                ProgressView()
-            case .installed:
-                Text("已安装")
-            }
-        }
-        .buttonStyle(.borderedProminent)
-        .font(.caption2)
-        .controlSize(.small)
-        .disabled(addButtonState != .idle)
-        .onAppear {
-            if let gameInfo = gameInfo, gameInfo.resources.contains(where: { $0.projectId == project.projectId }) {
-                addButtonState = .installed
-            }
-        }
-    }
-    
     // MARK: - Helper Methods
     static func formatNumber(_ num: Int) -> String {
         if num >= 1_000_000 {
@@ -216,4 +153,4 @@ struct ModrinthDetailCardView: View {
             return "\(num)"
         }
     }
-} 
+}

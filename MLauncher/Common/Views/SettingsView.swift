@@ -4,8 +4,9 @@ import Foundation
 /// 通用设置视图
 /// 用于显示应用程序的设置选项
 public struct SettingsView: View {
-    @ObservedObject private var lang = LanguageManager.shared
-    @ObservedObject private var theme = ThemeManager.shared
+    @ObservedObject private var general = GeneralSettingsManager.shared
+    @ObservedObject private var gameSettings = GameSettingsManager.shared
+    private let languages = LanguageManager.shared.languages
     
     /// 计算最大允许的内存分配 (MB)
     private var maximumMemoryAllocation: Int {
@@ -28,8 +29,8 @@ public struct SettingsView: View {
                     HStack {
                         Text("settings.language.picker".localized())
                         Spacer()
-                        Picker("", selection: $lang.selectedLanguage) {
-                            ForEach(lang.languages, id: \.1) { name, code in
+                        Picker("", selection: $general.selectedLanguage) {
+                            ForEach(languages, id: \.1) { name, code in
                                 Text(name).tag(code)
                             }
                         }
@@ -39,7 +40,7 @@ public struct SettingsView: View {
                     HStack {
                         Text("settings.theme.picker".localized())
                         Spacer()
-                        Picker("", selection: $theme.themeMode) {
+                        Picker("", selection: $general.themeMode) {
                             ForEach(ThemeMode.allCases, id: \.self) { mode in
                                 Text(mode.localizedName).tag(mode)
                             }
@@ -50,15 +51,15 @@ public struct SettingsView: View {
                     HStack {
                         Text("settings.minecraft_versions_url.label".localized())
                         Spacer()
-                         TextField("settings.minecraft_versions_url.placeholder".localized(), text: $lang.minecraftVersionManifestURL)
+                        TextField("settings.minecraft_versions_url.placeholder".localized(), text: $gameSettings.minecraftVersionManifestURL)
                             .frame(minWidth: 200) // Give text field some width
                     }
                     
                     HStack {
                         Text("settings.modrinth_api_url.label".localized())
                         Spacer()
-                         TextField("settings.modrinth_api_url.placeholder".localized(), text: $lang.modrinthAPIBaseURL)
-                             .frame(minWidth: 200) // Give text field some width
+                        TextField("settings.modrinth_api_url.placeholder".localized(), text: $gameSettings.modrinthAPIBaseURL)
+                            .frame(minWidth: 200) // Give text field some width
                     }
                 }
             }
@@ -84,29 +85,30 @@ public struct SettingsView: View {
                     HStack {
                         Text("settings.default_java_path.label".localized())
                         Spacer()
-                        TextField("settings.default_java_path.placeholder".localized(), text: $lang.defaultJavaPath)
+                        TextField("settings.default_java_path.placeholder".localized(), text: $gameSettings.defaultJavaPath)
                             .frame(minWidth: 200) // Give text field some width
                     }
                     
                     HStack(alignment: .top) {
                         Text("settings.default_memory_allocation.label".localized())
-                         Spacer()
+                        Spacer()
                         VStack(alignment: .leading) {
-                            Text("\(lang.defaultMemoryAllocation) MB")
-                            Slider(value: Binding(get: { Double(lang.defaultMemoryAllocation) }, set: { lang.defaultMemoryAllocation = Int($0 / 512) * 512 }), in: 512...Double(maximumMemoryAllocation), step: 512)
+                            Text("\(gameSettings.defaultMemoryAllocation) MB")
+                            Slider(value: Binding(get: { Double(gameSettings.defaultMemoryAllocation) }, set: { gameSettings.defaultMemoryAllocation = Int($0 / 512) * 512 }), in: 512...Double(maximumMemoryAllocation), step: 512)
                         }
                         .frame(minWidth: 150)
                     }
                     
-                     HStack(alignment: .top) {
-                         Text("settings.concurrent_downloads.label".localized())
-                         Spacer()
-                         VStack(alignment: .leading) {
-                             Text("\(lang.concurrentDownloads)")
-                             Slider(value: Binding(get: { Double(lang.concurrentDownloads) }, set: { lang.concurrentDownloads = Int($0) }), in: 1...10, step: 1)
-                         }
-                          .frame(minWidth: 150)
-                     }
+                    HStack(alignment: .top) {
+                        Text("settings.concurrent_downloads.label".localized())
+                        Spacer()
+                        VStack(alignment: .leading) {
+                            Text("\(gameSettings.concurrentDownloads)")
+                            Slider(value: Binding(get: { Double(gameSettings.concurrentDownloads) }, set: { gameSettings.concurrentDownloads = Int($0) }), in: 1...10, step: 1)
+                        }
+                        .frame(minWidth: 150)
+                    }
+                    Toggle("settings.auto_download_dependencies.label".localized(), isOn: $gameSettings.autoDownloadDependencies)
                 }
             }
             .padding()
@@ -121,3 +123,4 @@ public struct SettingsView: View {
 #Preview {
     SettingsView()
 } 
+

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct DetailView: View {
-    @ObservedObject private var lang = LanguageManager.shared
+    @ObservedObject private var general = GeneralSettingsManager.shared
     @Binding var selectedItem: SidebarItem  // 接收并可修改选中的侧边栏项目
     @Binding var currentPage: Int
     @Binding var totalItems: Int

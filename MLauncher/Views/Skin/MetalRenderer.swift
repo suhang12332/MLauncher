@@ -1,6 +1,7 @@
 import Foundation
 import MetalKit
 import simd
+import os
 
 struct Uniforms {
     var mvpMatrix: simd_float4x4
@@ -39,7 +40,7 @@ class MetalRenderer: NSObject, MTKViewDelegate {
 
     func loadModel() {
         guard let url = Bundle.main.url(forResource: "model", withExtension: "obj") else {
-            print("model.obj not found")
+            Logger.shared.error("未找到 model.obj 文件")
             return
         }
         let vertices = SimpleOBJLoader.loadOBJ(from: url)
@@ -59,7 +60,7 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             self.texture = tex
             lastLoadedSkin = skinName
         } catch {
-            print("Failed to load texture from assets: \(error)")
+            Logger.shared.error("从资源加载皮肤贴图失败: \(error)")
         }
     }
 

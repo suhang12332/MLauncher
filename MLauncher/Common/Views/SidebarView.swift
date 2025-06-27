@@ -11,6 +11,7 @@ public struct SidebarView: View {
     @EnvironmentObject var gameRepository: GameRepository
     @EnvironmentObject var playerListViewModel: PlayerListViewModel
     @State private var searchText: String = ""
+    @ObservedObject private var general = GeneralSettingsManager.shared
     
     public init(selectedItem: Binding<SidebarItem>, games: [String]) {
         self._selectedItem = selectedItem
@@ -72,7 +73,7 @@ public struct SidebarView: View {
         }
         .searchable(text: $searchText, placement: .sidebar, prompt: "sidebar.search.games".localized())
         .navigationTitle("app.name".localized())
-        .id(lang.selectedLanguage) // 强制视图在语言改变时重新创建    、
+//        .id(general.selectedLanguage) // 强制视图在语言改变时重新创建
         .safeAreaInset(edge: .bottom) {
             Button(
                 action: {

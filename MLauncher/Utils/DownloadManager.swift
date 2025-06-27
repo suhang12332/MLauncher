@@ -30,7 +30,7 @@ class DownloadManager {
     ///   - resourceType: 资源类型（如 "mod", "datapack", "shader", "resourcepack"）
     /// - Returns: 下载到的本地文件 URL
     static func downloadResource(for game: GameVersionInfo, urlString: String, resourceType: String) async throws -> URL {
-        Logger.shared.info("下载\(resourceType)")
+        Logger.shared.info("下载\(resourceType) \(urlString)")
         guard let url = URL(string: urlString) else {
             throw URLError(.badURL)
         }

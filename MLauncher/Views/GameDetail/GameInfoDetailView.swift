@@ -30,6 +30,7 @@ struct GameInfoDetailView: View {
     @State private var showDeleteAlert = false
     @Binding var selectedItem: SidebarItem
     @Binding var gameId: String?
+    
     var body: some View {
         VStack {
             HStack(spacing: 16) { // Added spacing back as per original design
@@ -105,7 +106,7 @@ struct GameInfoDetailView: View {
             if gameType == "local" {
                 let filteredResources = game.resources.filter { res in
                     res.type == query && (searchTextForResource.isEmpty || res.title.localizedCaseInsensitiveContains(searchTextForResource))
-                }
+                }.map { ModrinthProject.from(detail: $0) }
                 VStack {
                     ForEach(filteredResources, id: \.projectId) { mod in
                         ModrinthDetailCardView(
@@ -113,7 +114,8 @@ struct GameInfoDetailView: View {
                             selectedVersions: [game.gameVersion],
                             selectedLoaders: [game.modLoader],
                             gameInfo: game,
-                            query: query
+                            query: query,
+                            type: gameType
                         )
                         .padding(.vertical, ModrinthConstants.UI.verticalPadding)
                         .listRowInsets(
@@ -144,20 +146,9 @@ struct GameInfoDetailView: View {
                     selectedLoader: $selectedLoaders,
                     gameInfo: game,
                     selectedItem: $selectedItem
-                ).id(query)
+                )
             }
             
-        }
-        // 3. 监听 gameResourcesType
-        .onChange(of: query) { _,_ in
-            sortIndex = "relevance"
-        }
-        
-        // 4. 监听 gameResourcesLocation
-        .onChange(of: gameType) { _,_ in
-            currentPage = 1
-            totalItems = 0
-            sortIndex = "relevance"
         }
     }
     
@@ -182,7 +173,12 @@ struct GameInfoDetailView: View {
         if let profileDir = AppPaths.profileDirectory(gameName: game.gameName) {
             try? FileManager.default.removeItem(at: profileDir)
         }
-        selectedItem = .resource(.mod)
+        // 删除后如果还有游戏，跳转到第一个游戏，否则跳转到资源列表
+        if let firstGame = gameRepository.games.first {
+            selectedItem = .game(firstGame.id)
+        } else {
+            selectedItem = .resource(.mod)
+        }
     }
 }
 

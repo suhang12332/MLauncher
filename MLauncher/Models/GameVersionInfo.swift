@@ -64,8 +64,8 @@ struct GameVersionInfo: Codable, Identifiable {
     var runningMemorySize: Int
     
     /// 游戏资源列表
-    var resources: [ModrinthProject]
-    
+    var resources: [ModrinthProjectDetail]
+
     /// 游戏主类（Main Class）
     var mainClass: String
 
@@ -106,7 +106,7 @@ struct GameVersionInfo: Codable, Identifiable {
         jvmArguments: String = "",
         launchCommand: String = "",
         runningMemorySize: Int = 2048,
-        resources: [ModrinthProject] = [],
+        resources: [ModrinthProjectDetail] = [],
         mainClass: String = ""
     ) {
         self.id = id.uuidString

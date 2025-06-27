@@ -39,7 +39,9 @@ struct MinecraftLaunchCommand {
         process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = [scriptURL.path]
         
-        _ = gameRepository.updateGameStatus(id: game.id, isRunning: true)
+        await MainActor.run {
+            _ = gameRepository.updateGameStatus(id: game.id, isRunning: true)
+        }
         
         do {
             try process.run()

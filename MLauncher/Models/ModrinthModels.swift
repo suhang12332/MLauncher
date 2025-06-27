@@ -1,7 +1,7 @@
 import Foundation
 
 // Modrinth 项目模型
-struct ModrinthProject: Codable {
+public struct ModrinthProject: Codable {
     let projectId: String
     let projectType: String
     let slug: String
@@ -22,7 +22,6 @@ struct ModrinthProject: Codable {
     let serverSide: String
     let gallery: [String]?
     let featuredGallery: String?
-    let type: String?
     let color: Int?
 
     enum CodingKeys: String, CodingKey {
@@ -41,11 +40,11 @@ struct ModrinthProject: Codable {
         case gallery
         case featuredGallery = "featured_gallery"
         case color
-        case type
+
     }
 }
 
-struct ModrinthProjectDetail: Codable {
+public struct ModrinthProjectDetail: Codable, Hashable, Equatable {
     let slug: String
     let title: String
     let description: String
@@ -81,6 +80,7 @@ struct ModrinthProjectDetail: Codable {
     let gameVersions: [String]
     let loaders: [String]
     let gallery: [GalleryImage]?
+    let type: String?
     
     enum CodingKeys: String, CodingKey {
         case slug
@@ -118,21 +118,22 @@ struct ModrinthProjectDetail: Codable {
         case gameVersions = "game_versions"
         case loaders
         case gallery
+        case type
     }
 }
 
-struct DonationUrl: Codable {
+struct DonationUrl: Codable, Equatable, Hashable {
     let id: String
     let platform: String
     let url: String
 }
 
-struct ModeratorMessage: Codable {
+struct ModeratorMessage: Codable, Equatable, Hashable {
     let message: String
     let body: String?
 }
 
-struct GalleryImage: Codable {
+struct GalleryImage: Codable, Equatable, Hashable {
     let url: String
     let featured: Bool
     let title: String?
@@ -141,41 +142,8 @@ struct GalleryImage: Codable {
     let ordering: Int
 }
 
-// Modrinth 版本模型
-struct ModrinthVersion: Codable {
-    let id: String
-    let projectId: String
-    let name: String
-    let versionNumber: String
-    let changelog: String?
-    let files: [ModrinthFile]
-    let dependencies: [ModrinthDependency]
-    let gameVersions: [String]
-    let loaders: [String]
-    let featured: Bool
-    let status: String
-    let requestedStatus: String?
-    let published: String
-}
-
-// Modrinth 文件模型
-struct ModrinthFile: Codable {
-    let hashes: [String: String]
-    let url: String
-    let filename: String
-    let primary: Bool
-    let size: Int
-}
-
-// Modrinth 依赖模型
-struct ModrinthDependency: Codable {
-    let versionId: String?
-    let projectId: String?
-    let dependencyType: String
-}
-
 // Modrinth 许可证模型
-struct ModrinthLicense: Codable {
+struct ModrinthLicense: Codable, Equatable, Hashable {
     let id: String
     let name: String
     let url: String?
@@ -223,14 +191,14 @@ struct Category: Codable, Identifiable,Hashable {
 }
 
 // 许可证
-struct License: Codable {
+struct License: Codable, Equatable, Hashable {
     let id: String
     let name: String
     let url: String?
 }
 
 /// Modrinth version model
-public struct ModrinthProjectDetailVersion: Codable, Identifiable {
+public struct ModrinthProjectDetailVersion: Codable, Identifiable, Equatable, Hashable {
     /// Game versions this version supports
     public let gameVersions: [String]
     
@@ -304,7 +272,7 @@ public struct ModrinthProjectDetailVersion: Codable, Identifiable {
 }
 
 /// Modrinth version file model
-public struct ModrinthVersionFile: Codable {
+public struct ModrinthVersionFile: Codable, Equatable, Hashable {
     /// File hashes
     public let hashes: ModrinthVersionFileHashes
     
@@ -334,7 +302,7 @@ public struct ModrinthVersionFile: Codable {
 }
 
 /// Modrinth version file hashes model
-public struct ModrinthVersionFileHashes: Codable {
+public struct ModrinthVersionFileHashes: Codable, Equatable, Hashable {
     /// SHA512 hash
     public let sha512: String
     
@@ -343,7 +311,7 @@ public struct ModrinthVersionFileHashes: Codable {
 }
 
 /// Modrinth version dependency model
-public struct ModrinthVersionDependency: Codable {
+public struct ModrinthVersionDependency: Codable, Equatable, Hashable {
     /// Project ID
     public let projectId: String?
     
@@ -357,5 +325,40 @@ public struct ModrinthVersionDependency: Codable {
         case projectId = "project_id"
         case versionId = "version_id"
         case dependencyType = "dependency_type"
+    }
+}
+
+
+public struct ModrinthProjectDependency: Codable,Hashable,Equatable {
+    public let projects: [ModrinthProjectDetail]
+    public let versions: [ModrinthProjectDetailVersion]
+}
+
+public extension ModrinthProject {
+    /// 从 ModrinthProjectDetail 构建 ModrinthProject
+    static func from(detail: ModrinthProjectDetail) -> ModrinthProject {
+        ModrinthProject(
+            projectId: detail.id,
+            projectType: detail.projectType,
+            slug: detail.slug,
+            author: detail.team,
+            title: detail.title,
+            description: detail.description,
+            categories: detail.categories,
+            displayCategories: detail.additionalCategories ?? [],
+            versions: detail.versions,
+            downloads: detail.downloads,
+            follows: detail.followers,
+            iconUrl: detail.iconUrl,
+            dateCreated: ISO8601DateFormatter().string(from: detail.published),
+            dateModified: ISO8601DateFormatter().string(from: detail.updated),
+            latestVersion: detail.versions.first ?? "",
+            license: detail.license?.name ?? "",
+            clientSide: detail.clientSide,
+            serverSide: detail.serverSide,
+            gallery: detail.gallery?.map { $0.url },
+            featuredGallery: detail.gallery?.first(where: { $0.featured })?.url,
+            color: detail.color
+        )
     }
 }

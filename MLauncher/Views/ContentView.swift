@@ -7,8 +7,9 @@
 
 import SwiftUI
 import WebKit
+
 struct ContentView: View {
-    let selectedItem: SidebarItem // 接收选中的侧边栏项目
+    let selectedItem: SidebarItem  // 接收选中的侧边栏项目
     @Binding var selectedVersions: [String]
     @Binding var selectedLicenses: [String]
     @Binding var selectedCategories: [String]
@@ -31,24 +32,29 @@ struct ContentView: View {
                 if "local" == gameResourcesLocation {
                     List {
                         HStack {
-                            MinecraftSkinRenderView(skinName: playerListViewModel.currentPlayer?.avatarName).frame(minWidth: 200,minHeight: 400)
+                            MinecraftSkinRenderView(
+                                skinName: playerListViewModel.currentPlayer?
+                                    .avatarName
+                            ).frame(minWidth: 200, minHeight: 400)
                         }
                     }
-                }else{
-            List {
-                CategoryContentView(
-                    project: gameResourcesType,
-                    type: "game",
-                    selectedCategories: $selectedCategories,
-                    selectedFeatures: $selectedFeatures,
-                    selectedResolutions: $selectedResolutions,
-                    selectedPerformanceImpacts: $selectedPerformanceImpact,
-                    selectedVersions: $selectedVersions,
+                } else {
+                    List {
+                        CategoryContentView(
+                            project: gameResourcesType,
+                            type: "game",
+                            selectedCategories: $selectedCategories,
+                            selectedFeatures: $selectedFeatures,
+                            selectedResolutions: $selectedResolutions,
+                            selectedPerformanceImpacts:
+                                $selectedPerformanceImpact,
+                            selectedVersions: $selectedVersions,
                             selectedLoaders: $selectedLoaders,
                             gameVersion: game.gameVersion,
-                            gameLoader: "Vanilla" == game.modLoader ? nil : game.modLoader
-                )
-                .id(gameResourcesType)
+                            gameLoader: "Vanilla" == game.modLoader
+                                ? nil : game.modLoader
+                        )
+                        .id(gameResourcesType)
                     }
                 }
             } else {
@@ -57,7 +63,10 @@ struct ContentView: View {
         case .resource(let type):
             List {
                 if let projectId = selectProjectId {
-                    ModrinthProjectContentView(projectDetail: $loadedProjectDetail, projectId: projectId)
+                    ModrinthProjectContentView(
+                        projectDetail: $loadedProjectDetail,
+                        projectId: projectId
+                    )
                 } else {
                     CategoryContentView(
                         project: type.rawValue,
@@ -69,8 +78,8 @@ struct ContentView: View {
                         selectedVersions: $selectedVersions,
                         selectedLoaders: $selectedLoaders
                     )
-                    .id(refreshID)
-                    .onChange(of: type) { _,_ in
+
+                    .onChange(of: type) { _, _ in
                         refreshID = UUID()
                     }
                 }

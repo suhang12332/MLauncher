@@ -97,4 +97,15 @@ enum ModrinthService {
                 return versionMatch && loaderMatch
             }
         }
+
+    static func fetchProjectDependencies(id: String) async throws -> ModrinthProjectDependency {
+        let url = URLConfig.API.Modrinth.baseURL.appendingPathComponent("project/\(id)/dependencies")
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let decoder = JSONDecoder()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        decoder.dateDecodingStrategy = .formatted(dateFormatter)
+        return try decoder.decode(ModrinthProjectDependency.self, from: data)
+    }
 }
