@@ -6,9 +6,7 @@ enum PlayerUtils {
     // MARK: - Constants
 
     /// 预定义的玩家名称列表
-    private static let names = [
-        "alex", "ari", "efe", "kai", "makena", "noor", "steve", "sunny", "zuri",
-    ]
+    private static let names = ["alex", "ari", "efe", "kai", "makena", "noor", "steve", "sunny", "zuri"]
 
     /// UUID 前缀
     private static let offlinePrefix = "OfflinePlayer:"
@@ -20,30 +18,14 @@ enum PlayerUtils {
     /// - Returns: 生成的UUID字符串（小写）
     /// - Throws: 如果用户名无效或生成过程出错
     static func generateOfflineUUID(for username: String) throws -> String {
-        guard !username.isEmpty else {
-            throw PlayerError.invalidUsername
-        }
-
-        let input = offlinePrefix + username
-        guard let data = input.data(using: .utf8) else {
-            throw PlayerError.encodingError
-        }
-
-        let digest = Insecure.MD5.hash(data: data)
-        var bytes = [UInt8](digest)
-
-        // 设置 UUID 版本为 3 (MD5)
-        bytes[6] = (bytes[6] & 0x0F) | 0x30
-        // 设置 UUID 变体为 RFC 4122
-        bytes[8] = (bytes[8] & 0x3F) | 0x80
-
-        let uuid = bytes.withUnsafeBytes { ptr in
-            UUID(uuid: ptr.load(as: uuid_t.self))
-        }
-
+        guard !username.isEmpty else { throw PlayerError.invalidUsername }
+        guard let data = (offlinePrefix + username).data(using: .utf8) else { throw PlayerError.encodingError }
+        var bytes = [UInt8](Insecure.MD5.hash(data: data))
+        bytes[6] = (bytes[6] & 0x0F) | 0x30 // 版本3
+        bytes[8] = (bytes[8] & 0x3F) | 0x80 // RFC 4122
+        let uuid = bytes.withUnsafeBytes { UUID(uuid: $0.load(as: uuid_t.self)) }
         let uuidString = uuid.uuidString.lowercased()
         Logger.shared.debug("生成离线 UUID - 用户名：\(username), UUID：\(uuidString)")
-
         return uuidString
     }
 
@@ -66,18 +48,12 @@ enum PlayerUtils {
     private static func nameIndex(for uuid: String) -> Int? {
         let cleanUUID = uuid.replacingOccurrences(of: "-", with: "")
         guard cleanUUID.count >= 32 else { return nil }
-
         let iStr = String(cleanUUID.prefix(16))
         let uStr = String(cleanUUID.dropFirst(16).prefix(16))
-
-        guard let i = UInt64(iStr, radix: 16),
-            let u = UInt64(uStr, radix: 16)
-        else { return nil }
-
+        guard let i = UInt64(iStr, radix: 16), let u = UInt64(uStr, radix: 16) else { return nil }
         let f = i ^ u
         let mixedBits = (f ^ (f >> 32)) & 0xffff_ffff
         let I = Int32(bitPattern: UInt32(truncatingIfNeeded: mixedBits))
-
         return (Int(I) % names.count + names.count) % names.count
     }
 }

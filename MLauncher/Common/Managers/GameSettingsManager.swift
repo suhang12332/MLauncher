@@ -11,7 +11,12 @@ class GameSettingsManager: ObservableObject {
         didSet { objectWillChange.send() }
     }
     @AppStorage("concurrentDownloads") public var concurrentDownloads: Int = 4 {
-        didSet { objectWillChange.send() }
+        didSet {
+            if concurrentDownloads < 1 {
+                concurrentDownloads = 1
+            }
+            objectWillChange.send()
+        }
     }
     @AppStorage("autoDownloadDependencies") public var autoDownloadDependencies: Bool = true {
         didSet { objectWillChange.send() }

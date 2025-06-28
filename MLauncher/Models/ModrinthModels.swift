@@ -80,7 +80,7 @@ public struct ModrinthProjectDetail: Codable, Hashable, Equatable {
     let gameVersions: [String]
     let loaders: [String]
     let gallery: [GalleryImage]?
-    let type: String?
+    var type: String?
     
     enum CodingKeys: String, CodingKey {
         case slug

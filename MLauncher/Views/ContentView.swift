@@ -9,81 +9,94 @@ import SwiftUI
 import WebKit
 
 struct ContentView: View {
-    let selectedItem: SidebarItem  // 接收选中的侧边栏项目
+    // MARK: - Properties
+    let selectedItem: SidebarItem
     @Binding var selectedVersions: [String]
     @Binding var selectedLicenses: [String]
     @Binding var selectedCategories: [String]
     @Binding var selectedFeatures: [String]
     @Binding var selectedResolutions: [String]
     @Binding var selectedPerformanceImpact: [String]
-    @State private var refreshID = UUID()
     @Binding var selectProjectId: String?
     @Binding var loadedProjectDetail: ModrinthProjectDetail?
-    @EnvironmentObject var gameRepository: GameRepository
     @Binding var gameResourcesType: String
     @Binding var selectedLoaders: [String]
-    @Binding var gameResourcesLocation: String
-    @EnvironmentObject var playerListViewModel: PlayerListViewModel
+    @Binding var gameResourcesLocation: Bool
     @Binding var gameId: String?
+    
+    @EnvironmentObject var gameRepository: GameRepository
+    @EnvironmentObject var playerListViewModel: PlayerListViewModel
+    
+    // MARK: - Body
     var body: some View {
-        switch selectedItem {
-        case .game(let gameId):
-            if let game = gameRepository.getGame(by: gameId) {
-                if "local" == gameResourcesLocation {
-                    List {
-                        HStack {
-                            MinecraftSkinRenderView(
-                                skinName: playerListViewModel.currentPlayer?
-                                    .avatarName
-                            ).frame(minWidth: 200, minHeight: 400)
-                        }
-                    }
-                } else {
-                    List {
-                        CategoryContentView(
-                            project: gameResourcesType,
-                            type: "game",
-                            selectedCategories: $selectedCategories,
-                            selectedFeatures: $selectedFeatures,
-                            selectedResolutions: $selectedResolutions,
-                            selectedPerformanceImpacts:
-                                $selectedPerformanceImpact,
-                            selectedVersions: $selectedVersions,
-                            selectedLoaders: $selectedLoaders,
-                            gameVersion: game.gameVersion,
-                            gameLoader: "Vanilla" == game.modLoader
-                                ? nil : game.modLoader
-                        )
-                        .id(gameResourcesType)
-                    }
-                }
+        List {
+            switch selectedItem {
+            case .game(let gameId):
+                gameContentView(gameId: gameId)
+            case .resource(let type):
+                resourceContentView(type: type)
+            }
+        }
+    }
+    
+    // MARK: - Game Content View
+    @ViewBuilder
+    private func gameContentView(gameId: String) -> some View {
+        if let game = gameRepository.getGame(by: gameId) {
+            if gameResourcesLocation {
+                serverModeView(game: game)
             } else {
-                Text("game.not_found".localized())
+                localModeView(game: game)
             }
-        case .resource(let type):
-            List {
-                if let projectId = selectProjectId {
-                    ModrinthProjectContentView(
-                        projectDetail: $loadedProjectDetail,
-                        projectId: projectId
-                    )
-                } else {
-                    CategoryContentView(
-                        project: type.rawValue,
-                        type: "resource",
-                        selectedCategories: $selectedCategories,
-                        selectedFeatures: $selectedFeatures,
-                        selectedResolutions: $selectedResolutions,
-                        selectedPerformanceImpacts: $selectedPerformanceImpact,
-                        selectedVersions: $selectedVersions,
-                        selectedLoaders: $selectedLoaders
-                    )
-
-                    .onChange(of: type) { _, _ in
-                        refreshID = UUID()
-                    }
-                }
-            }
+        }
+    }
+    
+    private func serverModeView(game: GameVersionInfo) -> some View {
+        CategoryContentView(
+            project: gameResourcesType,
+            type: "game",
+            selectedCategories: $selectedCategories,
+            selectedFeatures: $selectedFeatures,
+            selectedResolutions: $selectedResolutions,
+            selectedPerformanceImpacts: $selectedPerformanceImpact,
+            selectedVersions: $selectedVersions,
+            selectedLoaders: $selectedLoaders,
+            gameVersion: game.gameVersion,
+            gameLoader: game.modLoader == "Vanilla" ? nil : game.modLoader
+        )
+        .id(gameResourcesType)
+    }
+    
+    private func localModeView(game: GameVersionInfo) -> some View {
+        // TODO: Implement local mode view
+        // HStack {
+        //     MinecraftSkinRenderView(
+        //         skinName: playerListViewModel.currentPlayer?.avatarName
+        //     ).frame(minWidth: 200, minHeight: 400)
+        // }
+        EmptyView()
+    }
+    
+    // MARK: - Resource Content View
+    @ViewBuilder
+    private func resourceContentView(type: ResourceType) -> some View {
+        if let projectId = selectProjectId {
+            ModrinthProjectContentView(
+                projectDetail: $loadedProjectDetail,
+                projectId: projectId
+            )
+        } else {
+            CategoryContentView(
+                project: type.rawValue,
+                type: "resource",
+                selectedCategories: $selectedCategories,
+                selectedFeatures: $selectedFeatures,
+                selectedResolutions: $selectedResolutions,
+                selectedPerformanceImpacts: $selectedPerformanceImpact,
+                selectedVersions: $selectedVersions,
+                selectedLoaders: $selectedLoaders
+            )
+            .id(type)
         }
     }
 }

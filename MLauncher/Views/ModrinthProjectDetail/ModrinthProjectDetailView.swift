@@ -10,18 +10,23 @@ private enum Constants {
     static let galleryImageHeight: CGFloat = 160
     static let galleryImageMinWidth: CGFloat = 160
     static let galleryImageMaxWidth: CGFloat = 200
+    static let categorySpacing: CGFloat = 6
+    static let categoryPadding: CGFloat = 4
+    static let categoryVerticalPadding: CGFloat = 2
+    static let categoryCornerRadius: CGFloat = 12
 }
 
 // MARK: - ModrinthProjectDetailView
 struct ModrinthProjectDetailView: View {
-    
     @Binding var selectedTab: Int
-    @State var projectDetail: ModrinthProjectDetail
-    @Binding var currentPage: Int // Current page, 1-indexed
+    let projectDetail: ModrinthProjectDetail?
+    @Binding var currentPage: Int
     @Binding var versionTotal: Int
+    
     var body: some View {
-        projectDetailView(projectDetail)
-        
+        if let project = projectDetail {
+            projectDetailView(project)
+        }
     }
     
     // MARK: - Project Detail View
@@ -90,14 +95,9 @@ struct ModrinthProjectDetailView: View {
             Label("\(project.downloads)", systemImage: "arrow.down.circle")
             Label("\(project.followers)", systemImage: "heart")
             
-            FlowLayout(spacing: 6) {
+            FlowLayout(spacing: Constants.categorySpacing) {
                 ForEach(project.categories, id: \.self) { category in
-                    Text(category)
-                        .font(.caption)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 2)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(12)
+                    CategoryTag(text: category)
                 }
             }
         }
@@ -112,7 +112,11 @@ struct ModrinthProjectDetailView: View {
             case 0:
                 descriptionView(project)
             case 1:
-                ModrinthProjectDetailVersionView(currentPage: $currentPage,versionTotal: $versionTotal,projectId: project.id)
+                ModrinthProjectDetailVersionView(
+                    currentPage: $currentPage,
+                    versionTotal: $versionTotal,
+                    projectId: project.id
+                )
             default:
                 EmptyView()
             }
@@ -124,7 +128,20 @@ struct ModrinthProjectDetailView: View {
     private func descriptionView(_ project: ModrinthProjectDetail) -> some View {
         Markdown(project.body)
     }
+}
+
+// MARK: - Helper Views
+private struct CategoryTag: View {
+    let text: String
     
+    var body: some View {
+        Text(text)
+            .font(.caption)
+            .padding(.horizontal, Constants.categoryPadding)
+            .padding(.vertical, Constants.categoryVerticalPadding)
+            .background(Color.gray.opacity(0.2))
+            .cornerRadius(Constants.categoryCornerRadius)
+    }
 }
 
  

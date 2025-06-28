@@ -63,8 +63,8 @@ final class CategoryContentViewModel: ObservableObject {
             async let categoriesTask = ModrinthService.fetchCategories()
             async let versionsTask = ModrinthService.fetchGameVersions()
             async let loadersTask = ModrinthService.fetchLoaders()
-            let (categoriesResult, versionsResult,loadersResult) = try await (categoriesTask, versionsTask,loadersTask)
-            await processFetchedData(categories: categoriesResult, versions: versionsResult,loaders: loadersResult)
+            let (categoriesResult, versionsResult, loadersResult) = try await (categoriesTask, versionsTask, loadersTask)
+            await processFetchedData(categories: categoriesResult, versions: versionsResult, loaders: loadersResult)
         } catch {
             handleError(error)
         }
@@ -72,7 +72,7 @@ final class CategoryContentViewModel: ObservableObject {
         isLoading = false
     }
     
-    private func processFetchedData(categories: [Category], versions: [GameVersion],loaders: [Loader]) async {
+    private func processFetchedData(categories: [Category], versions: [GameVersion], loaders: [Loader]) async {
         let filteredVersions = versions
             .filter { $0.version_type == "release" }
             .sorted { $0.date > $1.date }

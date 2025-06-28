@@ -6,7 +6,7 @@ enum ModrinthConstants {
     // MARK: - UI Constants
     /// UI 相关的常量
     enum UI {
-        static let pageSize: Int = 20
+        static let pageSize = 20
         static let iconSize: CGFloat = 48
         static let cornerRadius: CGFloat = 8
         static let tagCornerRadius: CGFloat = 6
@@ -14,8 +14,8 @@ enum ModrinthConstants {
         static let tagHorizontalPadding: CGFloat = 3
         static let tagVerticalPadding: CGFloat = 1
         static let spacing: CGFloat = 3
-        static let descriptionLineLimit: Int = 1
-        static let maxTags: Int = 3
+        static let descriptionLineLimit = 1
+        static let maxTags = 3
         static let contentSpacing: CGFloat = 8
     }
     
@@ -48,10 +48,10 @@ final class ModrinthSearchViewModel: ObservableObject {
     @Published private(set) var results: [ModrinthProject] = []
     @Published private(set) var isLoading = false
     @Published private(set) var error: Error?
-    @Published private(set) var totalHits: Int = 0
+    @Published private(set) var totalHits = 0
     
     // MARK: - Properties
-    let pageSize: Int = ModrinthConstants.UI.pageSize
+    let pageSize = ModrinthConstants.UI.pageSize
     private var searchTask: Task<Void, Never>?
     
     // MARK: - Public Methods

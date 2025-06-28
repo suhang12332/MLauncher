@@ -13,16 +13,15 @@ struct ModrinthDetailView: View {
     @Binding var selectedResolutions: [String]
     @Binding var selectedPerformanceImpact: [String]
     @Binding var selectedProjectId: String?
-    @Binding var searchText: String
     @Binding var selectedLoader: [String]
     let gameInfo: GameVersionInfo?
-    
+    @Binding var selectedItem: SidebarItem
+
     @StateObject private var viewModel = ModrinthSearchViewModel()
     @State private var hasLoaded = false
-    
-    // Timer to implement debounce for search
+    @State private var searchText: String = ""
     @State private var searchTimer: Timer? = nil
-    @Binding var selectedItem: SidebarItem
+
     // MARK: - Body
     var body: some View {
         LazyVStack {
@@ -36,73 +35,50 @@ struct ModrinthDetailView: View {
                 resultList
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .task {
-            if !hasLoaded {
-                hasLoaded = true
-                await performSearch()
-            }
-        }
-        .onChange(of: currentPage) { _, _ in
-            Task { await performSearch() }
-        }
-        .onChange(of: query) { _, _ in
-            currentPage = 1
-            Task { await performSearch() }
-        }
-        .onChange(of: viewModel.totalHits) { _, newValue in
-            totalItems = newValue
-        }
-        .onChange(of: sortIndex) { _, _ in
-            Task { await performSearch() }
-        }
-        .onChange(of: selectedVersions) { _, _ in
-            currentPage = 1
-            Task { await performSearch() }
-        }
-        .onChange(of: selectedCategories) { _, _ in
-            currentPage = 1
-            Task { await performSearch() }
-        }
-        .onChange(of: selectedFeatures) { _, _ in
-            currentPage = 1
-            Task { await performSearch() }
-        }
-        .onChange(of: selectedResolutions) { _, _ in
-            currentPage = 1
-            Task { await performSearch() }
-        }
-        .onChange(of: selectedPerformanceImpact) { _, _ in
-            currentPage = 1
-            Task { await performSearch() }
-        }
-        .onChange(of: selectedLoader) { _, _ in
-            currentPage = 1
-            Task { await performSearch() }
-        }
+        .task { await initialLoadIfNeeded() }
+        .onChange(of: currentPage) { _, _ in triggerSearch() }
+        .onChange(of: query) { _, _ in resetPageAndSearch() }
+        .onChange(of: viewModel.totalHits) { _, newValue in totalItems = newValue }
+        .onChange(of: sortIndex) { _, _ in triggerSearch() }
+        .onChange(of: selectedVersions) { _, _ in resetPageAndSearch() }
+        .onChange(of: selectedCategories) { _, _ in resetPageAndSearch() }
+        .onChange(of: selectedFeatures) { _, _ in resetPageAndSearch() }
+        .onChange(of: selectedResolutions) { _, _ in resetPageAndSearch() }
+        .onChange(of: selectedPerformanceImpact) { _, _ in resetPageAndSearch() }
+        .onChange(of: selectedLoader) { _, _ in resetPageAndSearch() }
+        .searchable(text: $searchText)
+        .onChange(of: searchText) { _, _ in debounceSearch() }
+    }
 
-        .refreshable {
+    // MARK: - Private Methods
+    private func initialLoadIfNeeded() async {
+        if !hasLoaded {
+            hasLoaded = true
             await performSearch()
         }
-        .searchable(text: $searchText)
-        .onChange(of: searchText) { _, newValue in // Listen for changes in searchText
-             // Invalidate previous timer if exists
-             searchTimer?.invalidate()
-             // Start a new timer
-             searchTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
-                 // Perform search after a short delay (debounce)
-                 Task { await performSearch() }
-             }
-         }
-        
     }
-    
-    // MARK: - Private Methods
+
+    private func triggerSearch() {
+        Task { await performSearch() }
+    }
+
+    private func resetPageAndSearch() {
+        currentPage = 1
+        triggerSearch()
+    }
+
+    private func debounceSearch() {
+        searchTimer?.invalidate()
+        searchTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+            Task { await performSearch() }
+        }
+    }
+
     private func performSearch() async {
         await viewModel.search(
             projectType: query,
             page: currentPage,
-            query: searchText, // Use searchText for the search query
+            query: searchText,
             sortIndex: sortIndex,
             versions: selectedVersions,
             categories: selectedCategories,
@@ -112,13 +88,9 @@ struct ModrinthDetailView: View {
             loaders: selectedLoader
         )
     }
-    
-    
-    
-    
-   
-    
-    public var resultList: some View {
+
+    // MARK: - Result List
+    private var resultList: some View {
         ForEach(viewModel.results, id: \.projectId) { mod in
             ModrinthDetailCardView(
                 project: mod,
@@ -126,16 +98,14 @@ struct ModrinthDetailView: View {
                 selectedLoaders: selectedLoader,
                 gameInfo: gameInfo,
                 query: query,
-                type: "server"
+                type: true
             )
             .padding(.vertical, ModrinthConstants.UI.verticalPadding)
-            .listRowInsets(
-                EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
-            )
+            .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
             .onTapGesture {
                 selectedProjectId = mod.projectId
                 if let type = ResourceType(rawValue: query) {
-                        selectedItem = .resource(type)
+                    selectedItem = .resource(type)
                 }
             }
         }

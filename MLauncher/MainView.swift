@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct MainView: View {
+    // MARK: - State & Environment
     @State private var columnVisibility = NavigationSplitViewVisibility.all
-    @State private var selectedItem: SidebarItem = SidebarItem.resource(.mod)
-    @State private var games: [String] = []  // 这里应该从数据源获取游戏列表
+    @State private var selectedItem: SidebarItem = .resource(.mod)
     @ObservedObject private var general = GeneralSettingsManager.shared
     @EnvironmentObject var gameRepository: GameRepository
-    // 分页相关
+
+    // MARK: - Resource/Project State
     @State private var currentPage: Int = 1
     @State private var totalItems: Int = 0
     @State private var sortIndex: String = "relevance"
@@ -25,22 +26,23 @@ struct MainView: View {
     @State private var selectedPerformanceImpact: [String] = []
     @State private var selectedLoaders: [String] = []
     @State private var selectedProjectId: String?
-    @State private var loadedProjectDetail: ModrinthProjectDetail? = nil
+    @State private var loadedProjectDetail: ModrinthProjectDetail?
     @State private var selectedTab = 0
 
+    // MARK: - Version/Detail State
     @State private var versionCurrentPage: Int = 1
     @State private var versionTotal: Int = 0
     @State private var gameResourcesType = "mod"
-    @State private var searchText: String = ""
-    @State private var gameResourcesLocation = "local"
-    @State private var gameId: String? = nil
+    @State private var gameResourcesLocation = false  // false = local, true = server
+    @State private var gameId: String?
+
+    // MARK: - Body
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             // 侧边栏
-            SidebarView(selectedItem: $selectedItem, games: games)
+            SidebarView(selectedItem: $selectedItem)
                 .navigationSplitViewColumnWidth(min: 160, ideal: 160, max: 160)
         } content: {
-//             内容区，使用新的 ContentView
             ContentView(
                 selectedItem: selectedItem,
                 selectedVersions: $selectedVersions,
@@ -56,9 +58,8 @@ struct MainView: View {
                 gameResourcesLocation: $gameResourcesLocation,
                 gameId: $gameId
             )
-            .toolbar {
-                ContentToolbarView()
-            }.navigationSplitViewColumnWidth(min: 235, ideal: 240, max: 250)
+            .toolbar { ContentToolbarView() }
+            .navigationSplitViewColumnWidth(min: 235, ideal: 240, max: 250)
         } detail: {
             DetailView(
                 selectedItem: $selectedItem,
@@ -76,13 +77,10 @@ struct MainView: View {
                 selectTab: $selectedTab,
                 versionCurrentPage: $versionCurrentPage,
                 versionTotal: $versionTotal,
-                searchText: $searchText,
                 gameResourcesLocation: $gameResourcesLocation,
-                selectedLoader: $selectedLoaders,
-                gameId: $gameId
+                selectedLoader: $selectedLoaders
             )
             .toolbar {
-                
                 DetailToolbarView(
                     selectedItem: $selectedItem,
                     sortIndex: $sortIndex,
@@ -95,89 +93,71 @@ struct MainView: View {
                     project: $loadedProjectDetail,
                     selectProjectId: $selectedProjectId,
                     selectedTab: $selectedTab,
-                    searchText: $searchText,
                     gameId: $gameId
-                    
                 )
             }
-
         }
-        .onChange(of: selectedItem) { value, newValue in
-            // 资源跳转到游戏
-            if case .resource = value, case .game(let id) = newValue {
-                gameResourcesLocation = "local"
-                let game = gameRepository.getGame(by: id)
-                if game?.modLoader.lowercased() == "vanilla" {
-                    gameResourcesType = "datapack"
-                } else {
-                    gameResourcesType = "mod"
-                }
-                gameId = id
-                selectedProjectId = nil
-            }
-            // 游戏跳转到详情
-            else if case .resource = newValue, case .game(_) = value {
-                gameResourcesLocation = "server"
-                sortIndex = "relevance"
-                gameResourcesType = "mod"
-                currentPage = 1
-                totalItems = 0
-                selectedVersions.removeAll()
-                selectedLicenses = []
-                selectedCategories = []
-                selectedFeatures = []
-                selectedResolutions = []
-                selectedPerformanceImpact = []
-                selectedLoaders = []
-                loadedProjectDetail = nil
-                selectedTab = 0
-                versionCurrentPage = 1
-                versionTotal = 0
-                searchText = ""
-                if selectedProjectId == nil {
-                    gameId = nil
-                }
-            }
-            // 游戏跳转到游戏
-            else if case .game(let id) = newValue, case .game(_) = value {
-                gameResourcesLocation = "local"
-                let game = gameRepository.getGame(by: id)
-                if game?.modLoader.lowercased() == "vanilla" {
-                    gameResourcesType = "datapack"
-                } else {
-                    gameResourcesType = "mod"
-                }
-                gameId = id
-            }
-            // 游戏跳转到资源
-            else if case .resource(_) = newValue, case .resource(_) = value {
-                gameResourcesLocation = "server"
-                sortIndex = "relevance"
-                gameResourcesType = "mod"
-                currentPage = 1
-                totalItems = 0
-                selectedVersions.removeAll()
-                selectedLicenses = []
-                selectedCategories = []
-                selectedFeatures = []
-                selectedResolutions = []
-                selectedPerformanceImpact = []
-                selectedLoaders = []
-                loadedProjectDetail = nil
-                selectedTab = 0
-                versionCurrentPage = 1
-                versionTotal = 0
-                selectedProjectId = nil
-                searchText = ""
-                gameId = nil
-            }
+        .onChange(of: selectedItem) { oldValue, newValue in
+            handleSidebarItemChange(from: oldValue, to: newValue)
         }
-        .onChange(of: selectedProjectId) { old, new in
-            // Reset loaded project detail when selected project changes
+        .onChange(of: selectedProjectId) { _, _ in
             loadedProjectDetail = nil
-            
         }
         .preferredColorScheme(general.themeMode.colorScheme)
+    }
+
+    // MARK: - Sidebar Item Change Handlers
+    private func handleSidebarItemChange(from oldValue: SidebarItem, to newValue: SidebarItem) {
+        switch (oldValue, newValue) {
+        case (.resource, .game(let id)):
+            handleResourceToGameTransition(gameId: id)
+        case (.game, .resource):
+            resetToResourceDefaults()
+        case (.game(let oldId), .game(let newId)):
+            handleGameToGameTransition(from: oldId, to: newId)
+        case (.resource, .resource):
+            resetToResourceDefaults()
+        }
+    }
+
+    // MARK: - Transition Helpers
+    private func handleResourceToGameTransition(gameId: String) {
+        gameResourcesLocation = false
+        let game = gameRepository.getGame(by: gameId)
+        gameResourcesType = game?.modLoader.lowercased() == "vanilla" ? "datapack" : "mod"
+        self.gameId = gameId
+        selectedProjectId = nil
+    }
+
+    private func handleGameToGameTransition(from oldId: String, to newId: String) {
+        gameResourcesLocation = false
+        let game = gameRepository.getGame(by: newId)
+        gameResourcesType = game?.modLoader.lowercased() == "vanilla" ? "datapack" : "mod"
+        gameId = newId
+    }
+
+    // MARK: - Resource Reset
+    private func resetToResourceDefaults() {
+        gameResourcesLocation = true  // true = server mode
+        sortIndex = "relevance"
+        if case .resource(let resourceType) = selectedItem {
+            gameResourcesType = resourceType.rawValue
+        }
+        currentPage = 1
+        totalItems = 0
+        selectedVersions.removeAll()
+        selectedLicenses.removeAll()
+        selectedCategories.removeAll()
+        selectedFeatures.removeAll()
+        selectedResolutions.removeAll()
+        selectedPerformanceImpact.removeAll()
+        selectedLoaders.removeAll()
+        loadedProjectDetail = nil
+        selectedTab = 0
+        versionCurrentPage = 1
+        versionTotal = 0
+        selectedProjectId = nil
+        gameId = nil
     }
 }
 

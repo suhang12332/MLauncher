@@ -28,7 +28,6 @@ class FabricFileManager {
     func downloadFabricJars(urls: [URL]) async throws {
         let total = urls.count
         let counter = Counter()
-        
         try await withThrowingTaskGroup(of: Void.self) { group in
             for url in urls {
                 group.addTask { [weak self] in

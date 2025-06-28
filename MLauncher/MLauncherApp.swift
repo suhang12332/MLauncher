@@ -8,18 +8,21 @@ import SwiftUI
 
 @main
 struct MLauncherApp: App {
-    // Instantiate PlayerListViewModel and make it available in the environment
+    // MARK: - StateObjects
     @StateObject private var playerListViewModel = PlayerListViewModel()
     @StateObject private var gameRepository = GameRepository()
+
+    // MARK: - Body
     var body: some Scene {
         WindowGroup {
             MainView()
-                .environmentObject(playerListViewModel).environmentObject(gameRepository)
-            // Inject the view model into the environment
-        }.windowStyle(.titleBar)
-            .windowToolbarStyle(.unified(showsTitle: false))
-            .windowResizability(.contentMinSize)
-        
+                .environmentObject(playerListViewModel)
+                .environmentObject(gameRepository)
+        }
+        .windowStyle(.titleBar)
+        .windowToolbarStyle(.unified(showsTitle: false))
+        .windowResizability(.contentMinSize)
+
         Settings {
             SettingsView()
         }

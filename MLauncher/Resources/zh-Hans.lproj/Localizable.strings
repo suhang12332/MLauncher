@@ -223,3 +223,6 @@
 "resource.add" = "添加";
 "resource.installed" = "已安装";
 "common.delete" = "删除";
+
+"pagination.current" = "第 %d 页";
+"pagination.total" = "共 %d 页";

@@ -3,31 +3,25 @@ import SwiftUI
 /// 详情区域工具栏内容
 public struct DetailToolbarView: ToolbarContent {
     @Binding var selectedItem: SidebarItem
-    
-    @EnvironmentObject var playerListViewModel: PlayerListViewModel  // Get the shared view model
+    @EnvironmentObject var playerListViewModel: PlayerListViewModel
     @Binding var sortIndex: String
     @Binding var gameResourcesType: String
-    @Binding var resourceType: String
+    @Binding var resourceType: Bool  // false = local, true = server
     @Binding var currentPage: Int
-
     @Binding var versionCurrentPage: Int
     @Binding var versionTotal: Int
     @EnvironmentObject var gameRepository: GameRepository
     let totalItems: Int
-
-    
-
     @Binding var project: ModrinthProjectDetail?
     @Binding var selectProjectId: String?
     @Binding var selectedTab: Int
-    @Binding var searchText: String
     @Binding var gameId: String?
 
     // MARK: - Computed Properties
     var totalPages: Int {
         max(1, Int(ceil(Double(totalItems) / Double(20))))
     }
-    // MARK: - Private Methods
+
     private func handlePageChange(_ increment: Int) {
         let newPage = currentPage + increment
         if newPage >= 1 && newPage <= totalPages {
@@ -35,7 +29,6 @@ public struct DetailToolbarView: ToolbarContent {
         }
     }
 
-    // 新增：当前选中游戏
     private var currentGame: GameVersionInfo? {
         if case .game(let gameId) = selectedItem {
             return gameRepository.getGame(by: gameId)
@@ -44,63 +37,62 @@ public struct DetailToolbarView: ToolbarContent {
     }
 
     public var body: some ToolbarContent {
-
-        // 根据 selectedItem 定制工具栏内容
         ToolbarItemGroup(placement: .primaryAction) {
             switch selectedItem {
             case .game:
                 if let game = currentGame {
-                    if "local" != resourceType {
-                        sortMenu
+                    if !resourceType {
+                        if let nsImage = CommonUtil.imageFromBase64(game.gameIcon) {
+                            Image(nsImage: nsImage)
+                                .resizable()
+                                .interpolation(.none)
+                                .frame(width: 22, height: 22)
+                                .cornerRadius(6)
+                        } else {
+                            Image(systemName: "cube.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 22, height: 22)
+                                .padding(3)
+                                .foregroundColor(.gray)
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(6)
+                        }
+                        Text(game.gameName)
+                            .font(.headline)
+                        Spacer()
                     }
-                    resourcesMenu
                     resourcesTypeMenu
-                    if "local" != resourceType {
+                    resourcesMenu
+                    if resourceType {
+                        sortMenu
                         paginationControls
                     }
-                    
-                    
                     Spacer()
-                  
-                    .help("player.add".localized())
-
                     Button(action: {
-                        
                         Task {
                             await MinecraftLaunchCommand(player: playerListViewModel.currentPlayer, game: game, gameRepository: gameRepository).launchGame()
                         }
                     }) {
-                        Label(
-                            "play.fill".localized(),
-                            systemImage: "play.fill"
-                        )
+                        Label("play.fill".localized(), systemImage: "play.fill")
                     }
                     .disabled(game.isRunning)
-                    Button(action: {
-                        
-//
-                    }) {
-                        Label(
-                            "play.fill".localized(),
-                            systemImage: "folder"
-                        )
+                    Button(action: {}) {
+                        Label("play.fill".localized(), systemImage: "folder")
                     }
-                   
-//                    Spacer()
                 }
-                
             case .resource:
                 if selectProjectId != nil {
                     ModrinthProjectDetailToolbarView(
-                        projectDetail: $project,
+                        projectDetail: project,
                         selectedTab: $selectedTab,
                         versionCurrentPage: $versionCurrentPage,
                         versionTotal: $versionTotal,
-                        gameId: $gameId,
+                        gameId: gameId,
                         onBack: {
                             if let id = gameId {
                                 selectedItem = .game(id)
-                            }else{
+                            } else {
                                 selectProjectId = nil
                                 selectedTab = 0
                             }
@@ -112,7 +104,6 @@ public struct DetailToolbarView: ToolbarContent {
                     Spacer()
                 }
             }
-
         }
     }
 
@@ -122,20 +113,14 @@ public struct DetailToolbarView: ToolbarContent {
     private var currentResourceTitle: String {
         "resource.content.type.\(gameResourcesType)".localized()
     }
-    
     private var currentResourceTypeTitle: String {
-        "resource.content.type.\(resourceType)".localized()
+        resourceType ? "resource.content.type.server".localized() : "resource.content.type.local".localized()
     }
-    
+
     private var sortMenu: some View {
         Menu {
-            ForEach(
-                ["relevance", "downloads", "follows", "newest", "updated"],
-                id: \.self
-            ) { sort in
-                Button(
-                    "menu.sort.\(sort)".localized()
-                ) {
+            ForEach(["relevance", "downloads", "follows", "newest", "updated"], id: \.self) { sort in
+                Button("menu.sort.\(sort)".localized()) {
                     sortIndex = sort
                 }
             }
@@ -144,12 +129,11 @@ public struct DetailToolbarView: ToolbarContent {
         }
         .help("player.add".localized())
     }
+
     private var resourcesMenu: some View {
         Menu {
             ForEach(resourceTypesForCurrentGame, id: \.self) { sort in
-                Button(
-                    "resource.content.type.\(sort)".localized()
-                ) {
+                Button("resource.content.type.\(sort)".localized()) {
                     gameResourcesType = sort
                 }
             }
@@ -158,48 +142,36 @@ public struct DetailToolbarView: ToolbarContent {
         }
         .help("player.add".localized())
     }
+
     private var resourcesTypeMenu: some View {
-        Menu {
-            ForEach(
-                ["local", "server"],
-                id: \.self
-            ) { sort in
-                Button(
-                    "resource.content.type.\(sort)".localized()
-                ) {
-                    resourceType = sort
-                }
-            }
-        } label: {
-            Text(currentResourceTypeTitle)
+        Button(action: {
+            resourceType.toggle()
+        }) {
+            Label(currentResourceTypeTitle, systemImage: resourceType ? "tray.and.arrow.down" : "icloud.and.arrow.down")
         }
-        .help("player.add".localized())
+        .help("view.mode.title".localized())
     }
+
     private var paginationControls: some View {
         HStack(spacing: 8) {
-            // Previous Page Button
             Button(action: { handlePageChange(-1) }) {
                 Image(systemName: "chevron.left")
             }
             .disabled(currentPage == 1)
-
-            // Page Info
             HStack(spacing: 8) {
-                Text("第 \(currentPage) 页")
-                Divider()
-                    .frame(height: 16)
-                Text("共 \(totalPages) 页")
+                Text(String(format: "pagination.current".localized(), currentPage))
+                Divider().frame(height: 16)
+                Text(String(format: "pagination.total".localized(), totalPages))
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
-
-            // Next Page Button
             Button(action: { handlePageChange(1) }) {
                 Image(systemName: "chevron.right")
             }
             .disabled(currentPage == totalPages)
         }
     }
+
     private var resourceTypesForCurrentGame: [String] {
         var types = ["datapack", "shader", "resourcepack"]
         if let game = currentGame, game.modLoader.lowercased() != "vanilla" {

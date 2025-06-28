@@ -22,115 +22,18 @@ struct GameInfoDetailView: View {
     @Binding var selectedResolutions: [String]
     @Binding var selectedPerformanceImpact: [String]
     @Binding var selectedProjectId: String?
-    @Binding var searchText: String
     @Binding var selectedLoaders: [String]
-    @Binding var gameType: String
+    @Binding var gameType: Bool  // false = local, true = server
     @EnvironmentObject var gameRepository: GameRepository
-    @State private var searchTextForResource: String = ""
+    @State private var searchTextForResource = ""
     @State private var showDeleteAlert = false
     @Binding var selectedItem: SidebarItem
-    @Binding var gameId: String?
     
     var body: some View {
         VStack {
-            HStack(spacing: 16) { // Added spacing back as per original design
-                // Game Icon
-                if let nsImage = imageFromBase64(game.gameIcon) {
-                    Image(nsImage: nsImage)
-                        .resizable()
-                        .interpolation(.none)
-                        .frame(width: 72, height: 72)
-//                        .background(Color.gray.opacity(0.1))
-//                        .cornerRadius(12)
-                } else {
-                    // Fallback to system icon if decoding fails (e.g., empty string, invalid Base64)
-                    Image(systemName: "cube.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 72, height: 72)
-                        .padding(6)
-                        .foregroundColor(.gray)
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(12)
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(game.gameName)
-                        .font(.title)
-                        .bold()
-                    
-                    HStack(spacing: 8) {
-                        Label(game.gameVersion, systemImage: "gamecontroller.fill")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Label(game.modLoader, systemImage: "puzzlepiece.extension.fill")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        // game.lastPlayed is Date (non-optional)
-                        Label(game.lastPlayed.formatted(.relative(presentation: .named)), systemImage: "clock.fill")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Spacer()
-                
-                // Actions
-                HStack(spacing: 12) { // Added spacing back as per original design
-                    Button(action: {
-                        showDeleteAlert = true
-                    }) {
-                        Image(systemName: "trash.fill")
-                            .padding(.vertical,6)
-                            .padding(.horizontal,10)
-                            .background(Color.accentColor)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                    .buttonStyle(.plain)
-                    .alert(isPresented: $showDeleteAlert) {
-                        Alert(
-                            title: Text("delete.title".localized()),
-                            message: Text(String(format: "delete.game.confirm".localized(), game.gameName)),
-                            primaryButton: .destructive(Text("common.delete".localized())) {
-                                deleteGameAndProfile()
-                            },
-                            secondaryButton: .cancel(Text("common.cancel".localized()))
-                        )
-                    }
-                }
-            }
-            
-            Divider()
-                .padding(.top,4)
-            if gameType == "local" {
-                let filteredResources = game.resources.filter { res in
-                    res.type == query && (searchTextForResource.isEmpty || res.title.localizedCaseInsensitiveContains(searchTextForResource))
-                }.map { ModrinthProject.from(detail: $0) }
-                VStack {
-                    ForEach(filteredResources, id: \.projectId) { mod in
-                        ModrinthDetailCardView(
-                            project: mod,
-                            selectedVersions: [game.gameVersion],
-                            selectedLoaders: [game.modLoader],
-                            gameInfo: game,
-                            query: query,
-                            type: gameType
-                        )
-                        .padding(.vertical, ModrinthConstants.UI.verticalPadding)
-                        .listRowInsets(
-                            EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
-                        )
-                        .onTapGesture {
-                            selectedProjectId = mod.projectId
-                            if let type = ResourceType(rawValue: query) {
-                                    selectedItem = .resource(type)
-                            }
-                        }
-                    }
-                }
-                .searchable(text: $searchTextForResource, placement: .automatic, prompt: "搜索资源名称")
-            } else {
+            headerView
+            Divider().padding(.top, 4)
+            if gameType {
                 ModrinthDetailView(
                     query: query,
                     currentPage: $currentPage,
@@ -142,38 +45,118 @@ struct GameInfoDetailView: View {
                     selectedResolutions: $selectedResolutions,
                     selectedPerformanceImpact: $selectedPerformanceImpact,
                     selectedProjectId: $selectedProjectId,
-                    searchText: $searchText,
                     selectedLoader: $selectedLoaders,
                     gameInfo: game,
                     selectedItem: $selectedItem
                 )
+            } else {
+                localResourceList
             }
-            
         }
     }
-    
-    // MARK: - Base64 图片解码工具
-    func imageFromBase64(_ base64: String) -> NSImage? {
-        if base64.hasPrefix("data:image") {
-            if let base64String = base64.split(separator: ",").last,
-               let imageData = Data(base64Encoded: String(base64String)),
-               let nsImage = NSImage(data: imageData) {
-                return nsImage
+
+    // MARK: - Header
+    private var headerView: some View {
+        HStack(spacing: 16) {
+            gameIcon
+            VStack(alignment: .leading, spacing: 4) {
+                Text(game.gameName)
+                    .font(.title)
+                    .bold()
+                HStack(spacing: 8) {
+                    Label(game.gameVersion, systemImage: "gamecontroller.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Label(game.modLoader, systemImage: "puzzlepiece.extension.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Label(game.lastPlayed.formatted(.relative(presentation: .named)), systemImage: "clock.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
             }
-        } else if let imageData = Data(base64Encoded: base64),
-                  let nsImage = NSImage(data: imageData) {
-            return nsImage
+            Spacer()
+            deleteButton
         }
-        return nil
     }
-    
+
+    private var gameIcon: some View {
+        Group {
+            if let nsImage = CommonUtil.imageFromBase64(game.gameIcon) {
+                Image(nsImage: nsImage)
+                    .resizable()
+                    .interpolation(.none)
+                    .frame(width: 72, height: 72)
+                    .cornerRadius(12)
+            } else {
+                Image(systemName: "cube.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 72, height: 72)
+                    .padding(6)
+                    .foregroundColor(.gray)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(12)
+            }
+        }
+    }
+
+    private var deleteButton: some View {
+        HStack(spacing: 12) {
+            Button(action: { showDeleteAlert = true }) {
+                Image(systemName: "trash.fill")
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .background(Color.accentColor)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+            }
+            .buttonStyle(.plain)
+            .alert(isPresented: $showDeleteAlert) {
+                Alert(
+                    title: Text("delete.title".localized()),
+                    message: Text(String(format: "delete.game.confirm".localized(), game.gameName)),
+                    primaryButton: .destructive(Text("common.delete".localized())) { deleteGameAndProfile() },
+                    secondaryButton: .cancel(Text("common.cancel".localized()))
+                )
+            }
+        }
+    }
+
+    // MARK: - Local Resource List
+    private var localResourceList: some View {
+        let filteredResources = game.resources.filter { res in
+            res.type == query && (searchTextForResource.isEmpty || res.title.localizedCaseInsensitiveContains(searchTextForResource))
+        }.map { ModrinthProject.from(detail: $0) }
+        return VStack {
+            ForEach(filteredResources, id: \.projectId) { mod in
+                ModrinthDetailCardView(
+                    project: mod,
+                    selectedVersions: [game.gameVersion],
+                    selectedLoaders: [game.modLoader],
+                    gameInfo: game,
+                    query: query,
+                    type: gameType
+                )
+                .padding(.vertical, ModrinthConstants.UI.verticalPadding)
+                .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
+                .onTapGesture {
+                    selectedProjectId = mod.projectId
+                    if let type = ResourceType(rawValue: query) {
+                        selectedItem = .resource(type)
+                    }
+                }
+            }
+        }
+        .searchable(text: $searchTextForResource, placement: .automatic, prompt: "搜索资源名称")
+    }
+
     // MARK: - 删除游戏及其文件夹
     private func deleteGameAndProfile() {
         gameRepository.deleteGame(id: game.id)
         if let profileDir = AppPaths.profileDirectory(gameName: game.gameName) {
             try? FileManager.default.removeItem(at: profileDir)
         }
-        // 删除后如果还有游戏，跳转到第一个游戏，否则跳转到资源列表
         if let firstGame = gameRepository.games.first {
             selectedItem = .game(firstGame.id)
         } else {

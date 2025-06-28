@@ -8,17 +8,18 @@ struct ModrinthDetailCardView: View {
     let selectedLoaders: [String]
     let gameInfo: GameVersionInfo?
     let query: String
-    let type: String
+    let type: Bool  // false = local, true = server
     
     @State private var addButtonState: AddButtonState = .idle
     @State private var showDeleteAlert = false
+    @EnvironmentObject private var gameRepository: GameRepository
     
+    // MARK: - Enums
     enum AddButtonState {
         case idle
         case loading
         case installed
     }
-    @EnvironmentObject private var gameRepository: GameRepository
     
     // MARK: - Body
     var body: some View {
@@ -42,29 +43,30 @@ struct ModrinthDetailCardView: View {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:
-                        Color.gray.opacity(0.2)
+                        placeholderIcon
                     case .success(let image):
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     case .failure:
-                        Color.gray.opacity(0.2)
+                        placeholderIcon
                     @unknown default:
-                        Color.gray.opacity(0.2)
+                        placeholderIcon
                     }
                 }
                 .frame(width: ModrinthConstants.UI.iconSize, height: ModrinthConstants.UI.iconSize)
                 .cornerRadius(ModrinthConstants.UI.cornerRadius)
                 .clipped()
             } else {
-                Color.gray.opacity(0.2)
-                    .frame(
-                        width: ModrinthConstants.UI.iconSize,
-                        height: ModrinthConstants.UI.iconSize
-                    )
-                    .cornerRadius(ModrinthConstants.UI.cornerRadius)
+                placeholderIcon
             }
         }
+    }
+    
+    private var placeholderIcon: some View {
+        Color.gray.opacity(0.2)
+            .frame(width: ModrinthConstants.UI.iconSize, height: ModrinthConstants.UI.iconSize)
+            .cornerRadius(ModrinthConstants.UI.cornerRadius)
     }
     
     private var titleView: some View {
@@ -88,16 +90,8 @@ struct ModrinthDetailCardView: View {
     
     private var tagsView: some View {
         HStack(spacing: ModrinthConstants.UI.spacing) {
-            ForEach(
-                Array(project.displayCategories.prefix(ModrinthConstants.UI.maxTags)),
-                id: \.self
-            ) { tag in
-                Text(tag)
-                    .font(.caption2)
-                    .padding(.horizontal, ModrinthConstants.UI.tagHorizontalPadding)
-                    .padding(.vertical, ModrinthConstants.UI.tagVerticalPadding)
-                    .background(Color.gray.opacity(0.15))
-                    .cornerRadius(ModrinthConstants.UI.tagCornerRadius)
+            ForEach(Array(project.displayCategories.prefix(ModrinthConstants.UI.maxTags)), id: \.self) { tag in
+                TagView(text: tag)
             }
             if project.displayCategories.count > ModrinthConstants.UI.maxTags {
                 Text("+\(project.displayCategories.count - ModrinthConstants.UI.maxTags)")
@@ -124,23 +118,17 @@ struct ModrinthDetailCardView: View {
     }
     
     private var downloadInfoView: some View {
-        HStack(spacing: 2) {
-            Image(systemName: "arrow.down.circle")
-                .imageScale(.small)
-            Text("\(Self.formatNumber(project.downloads))")
-        }
-        .font(.caption2)
-        .foregroundColor(.secondary)
+        InfoRowView(
+            icon: "arrow.down.circle",
+            text: Self.formatNumber(project.downloads)
+        )
     }
     
     private var followerInfoView: some View {
-        HStack(spacing: 2) {
-            Image(systemName: "heart")
-                .imageScale(.small)
-            Text("\(Self.formatNumber(project.follows))")
-        }
-        .font(.caption2)
-        .foregroundColor(.secondary)
+        InfoRowView(
+            icon: "heart",
+            text: Self.formatNumber(project.follows)
+        )
     }
     
     // MARK: - Helper Methods
@@ -152,5 +140,34 @@ struct ModrinthDetailCardView: View {
         } else {
             return "\(num)"
         }
+    }
+}
+
+// MARK: - Supporting Views
+private struct TagView: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.caption2)
+            .padding(.horizontal, ModrinthConstants.UI.tagHorizontalPadding)
+            .padding(.vertical, ModrinthConstants.UI.tagVerticalPadding)
+            .background(Color.gray.opacity(0.15))
+            .cornerRadius(ModrinthConstants.UI.tagCornerRadius)
+    }
+}
+
+private struct InfoRowView: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 2) {
+            Image(systemName: icon)
+                .imageScale(.small)
+            Text(text)
+        }
+        .font(.caption2)
+        .foregroundColor(.secondary)
     }
 }

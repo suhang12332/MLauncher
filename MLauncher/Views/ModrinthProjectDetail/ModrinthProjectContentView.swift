@@ -301,17 +301,13 @@ struct ModrinthProjectContentView: View {
                 DetailsSection(project: project)
             }
         }
-        .task(id: projectId) {
-            await loadProjectDetails()
-        }
+        .task(id: projectId) { await loadProjectDetails() }
     }
     
     private func loadProjectDetails() async {
         isLoading = true
         error = nil
-        
         Logger.shared.info("Loading project details for ID: \(projectId)")
-        
         do {
             let fetchedProject = try await ModrinthService.fetchProjectDetails(id: projectId)
             await MainActor.run {
@@ -418,8 +414,6 @@ private struct SectionView<Content: View>: View {
         }
     }
 }
-
-
 
 private struct DetailRow: View {
     let label: String

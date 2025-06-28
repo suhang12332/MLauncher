@@ -6,7 +6,7 @@ struct MinecraftLaunchCommand {
     let game: GameVersionInfo
     let gameRepository: GameRepository
     
-    // MARK: - 启动游戏
+    /// 启动游戏
     public func launchGame() async {
         do {
             let command = game.launchCommand
@@ -18,15 +18,12 @@ struct MinecraftLaunchCommand {
     
     /// 启动游戏进程
     private func launchGameProcess(command: String) async throws {
-        // 创建临时脚本文件
         let scriptContent = """
         #!/bin/bash
         /usr/bin/java \(command)
         """
-        
         let tempDir = FileManager.default.temporaryDirectory
         let scriptURL = tempDir.appendingPathComponent("launch_\(game.id).sh")
-        
         do {
             try scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
             try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptURL.path)
@@ -34,15 +31,12 @@ struct MinecraftLaunchCommand {
             Logger.shared.error("写入启动脚本失败: \(error.localizedDescription)")
             throw error
         }
-        
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = [scriptURL.path]
-        
         await MainActor.run {
             _ = gameRepository.updateGameStatus(id: game.id, isRunning: true)
         }
-        
         do {
             try process.run()
         } catch {
@@ -50,13 +44,12 @@ struct MinecraftLaunchCommand {
             _ = gameRepository.updateGameStatus(id: game.id, isRunning: false)
             throw error
         }
-        
         let gameId = game.id
         process.terminationHandler = { _ in
             Task { @MainActor in
                 _ = self.gameRepository.updateGameStatus(id: gameId, isRunning: false)
                 // 清理临时脚本文件
-//                try? FileManager.default.removeItem(at: scriptURL)
+                // try? FileManager.default.removeItem(at: scriptURL)
             }
         }
     }

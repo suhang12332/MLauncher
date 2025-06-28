@@ -15,22 +15,10 @@ struct MinecraftLibrary {
     
     init(from library: Library) {
         self.name = library.name
-        self.downloads = library.downloads.map { downloads in
+        self.downloads = library.downloads.map {
             MinecraftLibraryDownloads(
-                artifact: downloads.artifact.map { artifact in
-                    MinecraftArtifact(
-                        path: artifact.path,
-                        url: artifact.url,
-                        sha1: artifact.sha1
-                    )
-                },
-                classifiers: downloads.classifiers?.mapValues { artifact in
-                    MinecraftArtifact(
-                        path: artifact.path,
-                        url: artifact.url,
-                        sha1: artifact.sha1
-                    )
-                }
+                artifact: $0.artifact.map { MinecraftArtifact(path: $0.path, url: $0.url, sha1: $0.sha1) },
+                classifiers: $0.classifiers?.mapValues { MinecraftArtifact(path: $0.path, url: $0.url, sha1: $0.sha1) }
             )
         }
         self.natives = library.natives

@@ -55,36 +55,38 @@ struct CategoryContentView: View {
             if let error = viewModel.error {
                 ErrorView(error)
             } else {
-                if type=="resource" {
+                if type == "resource" {
                     versionSection
                 }
-
                 categorySection
                 projectSpecificSections
             }
         }
         .task {
             await viewModel.loadData()
-            if let gameVersion = gameVersion {
-                selectedVersions = [gameVersion]
-            }
-            if let gameLoader = gameLoader {
-                if project != "shader" {
-                    selectedLoaders = [gameLoader]
-                }else{
-                    selectedLoaders = []
-                }
+            setupDefaultSelections()
+        }
+    }
+    
+    // MARK: - Setup Methods
+    private func setupDefaultSelections() {
+        if let gameVersion = gameVersion {
+            selectedVersions = [gameVersion]
+        }
+        if let gameLoader = gameLoader {
+            if project != "shader" {
+                selectedLoaders = [gameLoader]
+            } else {
+                selectedLoaders = []
             }
         }
     }
 
-    // MARK: - Subviews
+    // MARK: - Section Views
     private var categorySection: some View {
         CategorySectionView(
             title: "filter.category",
-            items: viewModel.categories.map {
-                FilterItem(id: $0.name, name: $0.name)
-            },
+            items: viewModel.categories.map { FilterItem(id: $0.name, name: $0.name) },
             selectedItems: $selectedCategories,
             isLoading: viewModel.isLoading
         )
@@ -93,9 +95,7 @@ struct CategoryContentView: View {
     private var versionSection: some View {
         CategorySectionView(
             title: "filter.version",
-            items: viewModel.versions.map {
-                FilterItem(id: $0.id, name: $0.id)
-            },
+            items: viewModel.versions.map { FilterItem(id: $0.id, name: $0.id) },
             selectedItems: $selectedVersions,
             isLoading: viewModel.isLoading,
             isVersionSection: true
@@ -105,11 +105,7 @@ struct CategoryContentView: View {
     private var loaderSection: some View {
         CategorySectionView(
             title: "filter.loader",
-            items: viewModel.loaders
-                .filter { $0.supported_project_types.contains(project) }
-                .map {
-                    FilterItem(id: $0.name, name: $0.name)
-                },
+            items: filteredLoaders.map { FilterItem(id: $0.name, name: $0.name) },
             selectedItems: $selectedLoaders,
             isLoading: viewModel.isLoading
         )
@@ -119,32 +115,14 @@ struct CategoryContentView: View {
         Group {
             switch project {
             case ProjectType.modpack, ProjectType.mod:
-                if type=="resource" {
-                    CategorySectionView(
-                        title: "filter.loader",
-                        items: viewModel.loaders
-                            .filter { $0.supported_project_types.contains(project) }
-                            .map {
-                                FilterItem(id: $0.name, name: $0.name)
-                            },
-                        selectedItems: $selectedLoaders,
-                        isLoading: viewModel.isLoading
-                    )
+                if type == "resource" {
+                    loaderSection
                 }
                 environmentSection
             case ProjectType.resourcepack:
                 resourcePackSections
             case ProjectType.shader:
-                CategorySectionView(
-                    title: "filter.loader",
-                    items: viewModel.loaders
-                        .filter { $0.supported_project_types.contains(project) }
-                        .map {
-                            FilterItem(id: $0.name, name: $0.name)
-                        },
-                    selectedItems: $selectedLoaders,
-                    isLoading: viewModel.isLoading
-                )
+                loaderSection
                 shaderSections
             default:
                 EmptyView()
@@ -165,17 +143,13 @@ struct CategoryContentView: View {
         Group {
             CategorySectionView(
                 title: "filter.behavior",
-                items: viewModel.features.map {
-                    FilterItem(id: $0.name, name: $0.name)
-                },
+                items: viewModel.features.map { FilterItem(id: $0.name, name: $0.name) },
                 selectedItems: $selectedFeatures,
                 isLoading: viewModel.isLoading
             )
             CategorySectionView(
                 title: "filter.resolutions",
-                items: viewModel.resolutions.map {
-                    FilterItem(id: $0.name, name: $0.name)
-                },
+                items: viewModel.resolutions.map { FilterItem(id: $0.name, name: $0.name) },
                 selectedItems: $selectedResolutions,
                 isLoading: viewModel.isLoading
             )
@@ -186,17 +160,13 @@ struct CategoryContentView: View {
         Group {
             CategorySectionView(
                 title: "filter.behavior",
-                items: viewModel.features.map {
-                    FilterItem(id: $0.name, name: $0.name)
-                },
+                items: viewModel.features.map { FilterItem(id: $0.name, name: $0.name) },
                 selectedItems: $selectedFeatures,
                 isLoading: viewModel.isLoading
             )
             CategorySectionView(
                 title: "filter.performance",
-                items: viewModel.performanceImpacts.map {
-                    FilterItem(id: $0.name, name: $0.name)
-                },
+                items: viewModel.performanceImpacts.map { FilterItem(id: $0.name, name: $0.name) },
                 selectedItems: $selectedPerformanceImpacts,
                 isLoading: viewModel.isLoading
             )
@@ -204,16 +174,14 @@ struct CategoryContentView: View {
     }
 
     // MARK: - Computed Properties
+    private var filteredLoaders: [Loader] {
+        viewModel.loaders.filter { $0.supported_project_types.contains(project) }
+    }
+    
     private var environmentItems: [FilterItem] {
         [
-            FilterItem(
-                id: "client",
-                name: "environment.client".localized()
-            ),
-            FilterItem(
-                id: "server",
-                name: "environment.server".localized()
-            ),
+            FilterItem(id: "client", name: "environment.client".localized()),
+            FilterItem(id: "server", name: "environment.server".localized())
         ]
     }
 }

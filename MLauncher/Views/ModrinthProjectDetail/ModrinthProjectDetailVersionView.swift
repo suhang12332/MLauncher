@@ -16,6 +16,10 @@ private enum Constants {
     static let popoverHeight: CGFloat = 400
     static let filterPopoverWidth: CGFloat = 250
     static let filterPopoverHeight: CGFloat = 500
+    static let cornerRadius: CGFloat = 4
+    static let tagSpacing: CGFloat = 6
+    static let tagPadding: CGFloat = 6
+    static let tagVerticalPadding: CGFloat = 3
 }
 
 // MARK: - View Components
@@ -27,8 +31,7 @@ private struct VersionHeader: View {
     var body: some View {
         HStack {
             Text("versions.name".localized())
-                .font(.headline)
-                .bold()
+                .font(.headline.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             GameVersionFilter(
@@ -39,23 +42,19 @@ private struct VersionHeader: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             
             Text("versions.platforms".localized())
-                .font(.headline)
-                .bold()
+                .font(.headline.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             Text("versions.date".localized())
-                .font(.headline)
-                .bold()
+                .font(.headline.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             Text("versions.downloads".localized())
-                .font(.headline)
-                .bold()
+                .font(.headline.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             Text("versions.operate".localized())
-                .font(.headline)
-                .bold()
+                .font(.headline.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal)
@@ -71,8 +70,7 @@ private struct GameVersionFilter: View {
     var body: some View {
         HStack {
             Text("versions.game_versions".localized())
-                .font(.headline)
-                .bold()
+                .font(.headline.bold())
             
             Button(action: { showingVersionFilter = true }) {
                 HStack(spacing: 4) {
@@ -171,7 +169,7 @@ private struct GameVersionGroup: View {
                 .font(.headline.bold())
                 .foregroundColor(.primary)
             
-            FlowLayout(spacing: 6) {
+            FlowLayout(spacing: Constants.tagSpacing) {
                 ForEach(versions, id: \.self) { version in
                     Button(action: {
                         selectedGameVersion = version
@@ -179,10 +177,10 @@ private struct GameVersionGroup: View {
                     }) {
                         Text(version)
                             .font(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, Constants.tagPadding)
+                            .padding(.vertical, Constants.tagVerticalPadding)
                             .background(
-                                RoundedRectangle(cornerRadius: 4)
+                                RoundedRectangle(cornerRadius: Constants.cornerRadius)
                                     .fill(selectedGameVersion == version ? Color.accentColor.opacity(0.2) : Color.gray.opacity(0.1))
                             )
                             .foregroundColor(selectedGameVersion == version ? Color.accentColor : .primary)
@@ -245,15 +243,27 @@ private struct VersionNameSection: View {
     
     var body: some View {
         HStack {
-            version.versionType == "release"
-                ? Image(systemName: "r.circle").foregroundColor(.green).font(.system(size: 18))
-                : Image(systemName: "b.circle").foregroundColor(.orange).font(.system(size: 18))
+            versionTypeIcon
             VStack(alignment: .leading) {
                 Text(version.versionNumber)
                     .font(.headline)
                 Text(version.name)
                     .font(.caption)
                     .foregroundColor(.secondary)
+            }
+        }
+    }
+    
+    private var versionTypeIcon: some View {
+        Group {
+            if version.versionType == "release" {
+                Image(systemName: "r.circle")
+                    .foregroundColor(.green)
+                    .font(.system(size: 18))
+            } else {
+                Image(systemName: "b.circle")
+                    .foregroundColor(.orange)
+                    .font(.system(size: 18))
             }
         }
     }
@@ -265,26 +275,17 @@ private struct GameVersionsSection: View {
     
     var body: some View {
         HStack {
-            FlowLayout(spacing: 6) {
+            FlowLayout(spacing: Constants.tagSpacing) {
                 ForEach(Array(version.gameVersions.prefix(Constants.maxVisibleGameVersions)), id: \.self) { gameVersion in
-                    Text(gameVersion)
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(Color.gray.opacity(0.15))
-                        .cornerRadius(4)
+                    VersionTag(text: gameVersion)
                 }
             }
+            
             if version.gameVersions.count > Constants.maxVisibleGameVersions {
-                Button(action: { gameVersionsPopoverId = version.id }) {
-                    Text("+\(version.gameVersions.count - Constants.maxVisibleGameVersions)")
-                        .font(.caption)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 2)
-                        .background(Color.gray.opacity(0.15))
-                        .cornerRadius(12)
-                }
-                .buttonStyle(.plain)
+                MoreVersionsButton(
+                    count: version.gameVersions.count - Constants.maxVisibleGameVersions,
+                    action: { gameVersionsPopoverId = version.id }
+                )
                 .popover(isPresented: Binding(
                     get: { gameVersionsPopoverId == version.id },
                     set: { if !$0 { gameVersionsPopoverId = nil } }
@@ -312,14 +313,9 @@ private struct GameVersionsPopover: View {
                                 .font(.headline.bold())
                                 .foregroundColor(.secondary)
                             
-                            FlowLayout(spacing: 6) {
+                            FlowLayout(spacing: Constants.tagSpacing) {
                                 ForEach(groupedGameVersions(version.gameVersions)[majorVersion] ?? [], id: \.self) { gameVersion in
-                                    Text(gameVersion)
-                                        .font(.caption)
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 3)
-                                        .background(Color.gray.opacity(0.15))
-                                        .cornerRadius(4)
+                                    VersionTag(text: gameVersion)
                                 }
                             }
                         }
@@ -338,26 +334,17 @@ private struct PlatformsSection: View {
     
     var body: some View {
         HStack {
-            FlowLayout(spacing: 6) {
+            FlowLayout(spacing: Constants.tagSpacing) {
                 ForEach(Array(version.loaders.prefix(Constants.maxVisibleLoaders)), id: \.self) { loader in
-                    Text(loader)
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(Color.gray.opacity(0.15))
-                        .cornerRadius(4)
+                    VersionTag(text: loader)
                 }
             }
+            
             if version.loaders.count > Constants.maxVisibleLoaders {
-                Button(action: { platformsPopoverId = version.id }) {
-                    Text("+\(version.loaders.count - Constants.maxVisibleLoaders)")
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(Color.gray.opacity(0.15))
-                        .cornerRadius(4)
-                }
-                .buttonStyle(.plain)
+                MoreVersionsButton(
+                    count: version.loaders.count - Constants.maxVisibleLoaders,
+                    action: { platformsPopoverId = version.id }
+                )
                 .popover(isPresented: Binding(
                     get: { platformsPopoverId == version.id },
                     set: { if !$0 { platformsPopoverId = nil } }
@@ -376,19 +363,44 @@ private struct PlatformsPopover: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("versions.platforms".localized())
                 .font(.headline)
-            FlowLayout(spacing: 6) {
+            FlowLayout(spacing: Constants.tagSpacing) {
                 ForEach(version.loaders, id: \.self) { loader in
-                    Text(loader)
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(Color.gray.opacity(0.15))
-                        .cornerRadius(4)
+                    VersionTag(text: loader)
                 }
             }
         }
         .padding()
         .frame(width: Constants.popoverWidth)
+    }
+}
+
+private struct VersionTag: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.caption)
+            .padding(.horizontal, Constants.tagPadding)
+            .padding(.vertical, Constants.tagVerticalPadding)
+            .background(Color.gray.opacity(0.15))
+            .cornerRadius(Constants.cornerRadius)
+    }
+}
+
+private struct MoreVersionsButton: View {
+    let count: Int
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text("+\(count)")
+                .font(.caption)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
+                .background(Color.gray.opacity(0.15))
+                .cornerRadius(12)
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -408,66 +420,16 @@ private func groupedGameVersions(_ versions: [String]) -> [String: [String]] {
     var groups: [String: [String]] = [:]
     
     for version in versions {
-        // 处理快照版本 (如 23w43a)
-        if version.contains("w") {
-            let year = String(version.prefix(2))
-            let groupKey = "Snapshot \(year)"
-            if groups[groupKey] == nil {
-                groups[groupKey] = []
-            }
-            groups[groupKey]?.append(version)
-            continue
+        let groupKey = getVersionGroupKey(version)
+        if groups[groupKey] == nil {
+            groups[groupKey] = []
         }
-        
-        // 处理预发布版本 (如 1.20.4-pre1)
-        if version.contains("-pre") {
-            let baseVersion = version.components(separatedBy: "-pre")[0]
-            let components = baseVersion.split(separator: ".")
-            if components.count >= 2 {
-                let majorVersion = "\(components[0]).\(components[1])"
-                if groups[majorVersion] == nil {
-                    groups[majorVersion] = []
-                }
-                groups[majorVersion]?.append(version)
-            }
-            continue
-        }
-        
-        // 处理候选版本 (如 1.20.4-rc1)
-        if version.contains("-rc") {
-            let baseVersion = version.components(separatedBy: "-rc")[0]
-            let components = baseVersion.split(separator: ".")
-            if components.count >= 2 {
-                let majorVersion = "\(components[0]).\(components[1])"
-                if groups[majorVersion] == nil {
-                    groups[majorVersion] = []
-                }
-                groups[majorVersion]?.append(version)
-            }
-            continue
-        }
-        
-        // 处理正式版本 (如 1.20.4)
-        let components = version.split(separator: ".")
-        if components.count >= 2 {
-            let majorVersion = "\(components[0]).\(components[1])"
-            if groups[majorVersion] == nil {
-                groups[majorVersion] = []
-            }
-            groups[majorVersion]?.append(version)
-        } else {
-            // 处理其他格式的版本
-            if groups["Other"] == nil {
-                groups["Other"] = []
-            }
-            groups["Other"]?.append(version)
-        }
+        groups[groupKey]?.append(version)
     }
     
     // 对每个组内的版本进行排序
     for key in groups.keys {
         groups[key]?.sort { version1, version2 in
-            // 移除所有非数字字符后比较
             let v1 = version1.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
             let v2 = version2.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
             return v1 > v2
@@ -477,6 +439,39 @@ private func groupedGameVersions(_ versions: [String]) -> [String: [String]] {
     return groups
 }
 
+private func getVersionGroupKey(_ version: String) -> String {
+    // 处理快照版本 (如 23w43a)
+    if version.contains("w") {
+        let year = String(version.prefix(2))
+        return "Snapshot \(year)"
+    }
+    
+    // 处理预发布版本 (如 1.20.4-pre1)
+    if version.contains("-pre") {
+        let baseVersion = version.components(separatedBy: "-pre")[0]
+        return getMajorVersion(from: baseVersion)
+    }
+    
+    // 处理候选版本 (如 1.20.4-rc1)
+    if version.contains("-rc") {
+        let baseVersion = version.components(separatedBy: "-rc")[0]
+        return getMajorVersion(from: baseVersion)
+    }
+    
+    // 处理正式版本 (如 1.20.4)
+    return getMajorVersion(from: version)
+}
+
+private func getMajorVersion(from version: String) -> String {
+    let components = version.split(separator: ".")
+    if components.count >= 2 {
+        return "\(components[0]).\(components[1])"
+    } else {
+        return "Other"
+    }
+}
+
+// MARK: - Main View
 struct ModrinthProjectDetailVersionView: View {
     @State private var isLoadingVersions = false
     @State private var error: Error?
@@ -524,7 +519,7 @@ struct ModrinthProjectDetailVersionView: View {
         .task {
             await loadVersions()
         }
-        .onChange(of: selectedGameVersion) { oldValue, newValue in
+        .onChange(of: selectedGameVersion) { _, _ in
             Task {
                 await loadVersions()
             }

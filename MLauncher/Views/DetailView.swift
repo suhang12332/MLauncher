@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct DetailView: View {
+    // MARK: - Properties
     @ObservedObject private var general = GeneralSettingsManager.shared
-    @Binding var selectedItem: SidebarItem  // 接收并可修改选中的侧边栏项目
+    @Binding var selectedItem: SidebarItem
     @Binding var currentPage: Int
     @Binding var totalItems: Int
     @Binding var sortIndex: String
@@ -21,72 +22,75 @@ struct DetailView: View {
     @Binding var selectedPerformanceImpact: [String]
     @Binding var selectedProjectId: String?
     @Binding var loadedProjectDetail: ModrinthProjectDetail?
-    @Binding var selectTab:Int
+    @Binding var selectTab: Int
     @Binding var versionCurrentPage: Int
     @Binding var versionTotal: Int
-    @Binding var searchText: String
-    @Binding var gameResourcesLocation: String
+    @Binding var gameResourcesLocation: Bool
     @Binding var selectedLoader: [String]
+    
     @EnvironmentObject var gameRepository: GameRepository
-    @Binding var gameId: String?
+    
+    // MARK: - Body
     var body: some View {
-        switch selectedItem {
-        case .game(let gameId):
-            if let gameinfo = gameRepository.getGame(by: gameId) {
-                List {
-                    GameInfoDetailView(game: gameinfo,query: $gameResourcesType,
-                                       currentPage: $currentPage,
-                                       totalItems: $totalItems,
-                                       sortIndex: $sortIndex,
-                                       selectedVersions: $selectedVersions,
-                                       selectedCategories: $selectedCategories,
-                                       selectedFeatures: $selectedFeatures,
-                                       selectedResolutions: $selectedResolutions,
-                                       selectedPerformanceImpact: $selectedPerformanceImpact,
-                                       selectedProjectId: $selectedProjectId,
-                                       searchText: $searchText,
-                                       selectedLoaders: $selectedLoader,
-                                       gameType: $gameResourcesLocation,
-                                       selectedItem: $selectedItem,
-                                       gameId: $gameId
-                    )
-                    .padding()
-                    
-                }.listStyle(.plain)
-                
+        List {
+            switch selectedItem {
+            case .game(let gameId):
+                gameDetailView(gameId: gameId)
+            case .resource(let type):
+                resourceDetailView(type: type)
             }
-            
-        case .resource(let type):
-            List {
-                if selectedProjectId != nil {
-                    if let project = loadedProjectDetail {
-                        ModrinthProjectDetailView(selectedTab: $selectTab, projectDetail: project, currentPage: $versionCurrentPage,versionTotal: $versionTotal)
-                    } else {
-                        EmptyView()
-                    }
-                } else {
-                    ModrinthDetailView(
-                        query: type.rawValue,
-                        currentPage: $currentPage,
-                        totalItems: $totalItems,
-                        sortIndex: $sortIndex,
-                        selectedVersions: $selectedVersions,
-                        selectedCategories: $selectedCategories,
-                        selectedFeatures: $selectedFeatures,
-                        selectedResolutions: $selectedResolutions,
-                        selectedPerformanceImpact: $selectedPerformanceImpact,
-                        selectedProjectId: $selectedProjectId,
-                        searchText: $searchText,
-                        selectedLoader: $selectedLoader,
-                        gameInfo: nil,
-                        selectedItem: $selectedItem
-                    )
-                    .padding()
-                }
-                
-            }.listStyle(.plain)
-            
-
+        }
+    }
+    
+    // MARK: - Game Detail View
+    @ViewBuilder
+    private func gameDetailView(gameId: String) -> some View {
+        if let gameInfo = gameRepository.getGame(by: gameId) {
+            GameInfoDetailView(
+                game: gameInfo,
+                query: $gameResourcesType,
+                currentPage: $currentPage,
+                totalItems: $totalItems,
+                sortIndex: $sortIndex,
+                selectedVersions: $selectedVersions,
+                selectedCategories: $selectedCategories,
+                selectedFeatures: $selectedFeatures,
+                selectedResolutions: $selectedResolutions,
+                selectedPerformanceImpact: $selectedPerformanceImpact,
+                selectedProjectId: $selectedProjectId,
+                selectedLoaders: $selectedLoader,
+                gameType: $gameResourcesLocation,
+                selectedItem: $selectedItem
+            )
+        }
+    }
+    
+    // MARK: - Resource Detail View
+    @ViewBuilder
+    private func resourceDetailView(type: ResourceType) -> some View {
+        if selectedProjectId != nil {
+            ModrinthProjectDetailView(
+                selectedTab: $selectTab,
+                projectDetail: loadedProjectDetail,
+                currentPage: $versionCurrentPage,
+                versionTotal: $versionTotal
+            )
+        } else {
+            ModrinthDetailView(
+                query: type.rawValue,
+                currentPage: $currentPage,
+                totalItems: $totalItems,
+                sortIndex: $sortIndex,
+                selectedVersions: $selectedVersions,
+                selectedCategories: $selectedCategories,
+                selectedFeatures: $selectedFeatures,
+                selectedResolutions: $selectedResolutions,
+                selectedPerformanceImpact: $selectedPerformanceImpact,
+                selectedProjectId: $selectedProjectId,
+                selectedLoader: $selectedLoader,
+                gameInfo: nil,
+                selectedItem: $selectedItem
+            )
         }
     }
 }
