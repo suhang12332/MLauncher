@@ -178,6 +178,10 @@ class GameRepository: ObservableObject {
         }
         var game = games[index]
         if let resourceIndex = game.resources.firstIndex(where: { $0.id == projectId }) {
+            let resource = game.resources[resourceIndex]
+            // 删除本地文件
+            ResourceFileManager.deleteResourceFile(for: game, resource: resource)
+            // 移除元数据
             game.resources.remove(at: resourceIndex)
             games[index] = game
             saveGames()

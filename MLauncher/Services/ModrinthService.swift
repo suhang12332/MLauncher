@@ -41,6 +41,7 @@ enum ModrinthService {
         let (data, _) = try await URLSession.shared.data(
             from: URLConfig.API.Modrinth.Tag.loader
         )
+        Logger.shared.info("Modrinth 搜索 URL：\(URLConfig.API.Modrinth.Tag.loader)")
         return try JSONDecoder().decode([Loader].self, from: data)
     }
 
@@ -48,6 +49,7 @@ enum ModrinthService {
         let (data, _) = try await URLSession.shared.data(
             from: URLConfig.API.Modrinth.Tag.category
         )
+        Logger.shared.info("Modrinth 搜索 URL：\(URLConfig.API.Modrinth.Tag.category)")
         return try JSONDecoder().decode([Category].self, from: data)
     }
     
@@ -56,6 +58,7 @@ enum ModrinthService {
         let (data, _) = try await URLSession.shared.data(
             from: URLConfig.API.Modrinth.Tag.gameVersion
         )
+        Logger.shared.info("Modrinth 搜索 URL：\(URLConfig.API.Modrinth.Tag.gameVersion)")
         return try JSONDecoder().decode([GameVersion].self, from: data)
     }
 
@@ -68,7 +71,7 @@ enum ModrinthService {
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
         dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
-        
+        Logger.shared.info("Modrinth 搜索 URL：\(url)")
         return try decoder.decode(ModrinthProjectDetail.self, from: data)
     }
 
@@ -81,6 +84,7 @@ enum ModrinthService {
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
         dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
+        Logger.shared.info("Modrinth 搜索 URL：\(url)")
         return try decoder.decode([ModrinthProjectDetailVersion].self, from: data)
     }
     
@@ -106,6 +110,13 @@ enum ModrinthService {
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
         dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
+        Logger.shared.info("Modrinth 搜索 URL：\(url)")
         return try decoder.decode(ModrinthProjectDependency.self, from: data)
     }
+    // 过滤出 primary == true 的文件
+    static func filterPrimaryFiles(from files: [ModrinthVersionFile]?) -> ModrinthVersionFile? {
+        return files?.filter { $0.primary == true }.first
+    }
 }
+
+

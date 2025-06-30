@@ -1,3 +1,10 @@
+//
+//  AddOrDeleteResourceButton.swift
+//  MLauncher
+//
+//  Created by su on 2025/6/28.
+//
+
 import SwiftUI
 import Foundation
 import os
@@ -10,11 +17,27 @@ final class DependencySheetViewModel: ObservableObject {
     @Published var dependencyDownloadStates: [String: ResourceDownloadState] = [:]
     @Published var dependencyVersions: [String: [ModrinthProjectDetailVersion]] = [:]
     @Published var selectedDependencyVersion: [String: String] = [:]
+    @Published var overallDownloadState: OverallDownloadState = .idle
+
+    enum OverallDownloadState {
+        case idle // 初始状态，或全部下载成功后
+        case failed // 首次"全部下载"操作中，有任何文件失败
+        case retrying // 用户正在重试失败项
+    }
+    
+    var allDependenciesDownloaded: Bool {
+        // 当没有依赖时，也认为"所有依赖都已下载"
+        if missingDependencies.isEmpty { return true }
+        
+        // 检查所有列出的依赖项是否都标记为成功
+        return missingDependencies.allSatisfy { dependencyDownloadStates[$0.id] == .success }
+    }
 
     func resetDownloadStates() {
         for dep in missingDependencies {
             dependencyDownloadStates[dep.id] = .idle
         }
+        overallDownloadState = .idle
     }
 }
 
@@ -35,19 +58,60 @@ struct AddOrDeleteResourceButton: View {
     @State private var showDeleteAlert = false
     @ObservedObject private var gameSettings = GameSettingsManager.shared
     @StateObject private var depVM = DependencySheetViewModel()
-    
+    @State private var isDownloadingAllDependencies = false
+    @Binding var selectedItem: SidebarItem
     var body: some View {
         Button(action: handleButtonAction) {
             buttonLabel
         }
         .buttonStyle(.borderedProminent)
+        .tint(.accentColor) // 或 .tint(.primary) 但一般用 accentColor 更美观
         .font(.caption2)
         .controlSize(.small)
         .disabled(addButtonState == .loading || (addButtonState == .installed && type))  // type = true (server mode) disables deletion
         .onAppear(perform: updateButtonState)
         .onReceive(gameRepository.objectWillChange) { _ in updateButtonState() }
         .alert(isPresented: $showDeleteAlert) { deleteAlert }
-        .sheet(isPresented: $depVM.showDependenciesSheet) { dependencySheet }
+        .sheet(isPresented: $depVM.showDependenciesSheet) {
+            DependencySheetView(
+                viewModel: depVM,
+                isDownloadingAllDependencies: $isDownloadingAllDependencies,
+                onDownloadAll: {
+                    if depVM.overallDownloadState == .failed {
+                        // 如果是失败后点击"继续"
+                        await GameResourceHandler.downloadMainResourceAfterDependencies(
+                            project: project,
+                            gameInfo: gameInfo,
+                            depVM: depVM,
+                            query: query,
+                            gameRepository: gameRepository,
+                            updateButtonState: updateButtonState
+                        )
+                    } else {
+                        // 首次点击"全部下载"
+                        await GameResourceHandler.downloadAllDependenciesAndMain(
+                            project: project,
+                            gameInfo: gameInfo,
+                            depVM: depVM,
+                            query: query,
+                            gameRepository: gameRepository,
+                            updateButtonState: updateButtonState
+                        )
+                    }
+                },
+                onRetry: { dep in
+                    Task {
+                        await GameResourceHandler.retryDownloadDependency(
+                            dep: dep,
+                            gameInfo: gameInfo,
+                            depVM: depVM,
+                            query: query,
+                            gameRepository: gameRepository
+                        )
+                    }
+                }
+            )
+        }
     }
     
     // MARK: - UI Components
@@ -66,200 +130,109 @@ struct AddOrDeleteResourceButton: View {
         Alert(
             title: Text("common.delete".localized()),
             message: Text(String(format: "resource.delete.confirm".localized(), project.title)),
-            primaryButton: .destructive(Text("common.delete".localized())) { removeResource() },
+            primaryButton: .destructive(Text("common.delete".localized())) {
+                if case .game = selectedItem {
+                    GameResourceHandler.performDelete(
+                        gameInfo: gameInfo,
+                        project: project,
+                        gameRepository: gameRepository
+                    )
+                } else if case .resource = selectedItem {
+                    GlobalResourceHandler.performDelete(project: project)
+                }
+            },
             secondaryButton: .cancel()
         )
     }
 
-    private var dependencySheet: some View {
-        CommonSheetView(
-            header: {
-                Text("待下载的前置mod(必须)")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            },
-            body: {
-                if depVM.isLoadingDependencies || depVM.missingDependencies.isEmpty {
-                    ProgressView().frame(height: 100).controlSize(.small)
-                } else {
-                    VStack {
-                        ForEach(depVM.missingDependencies, id: \ .id) { dep in
-                            let versions = depVM.dependencyVersions[dep.id] ?? []
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(dep.title).font(.headline)
-                                Picker("选择版本:", selection: Binding(
-                                    get: { depVM.selectedDependencyVersion[dep.id] ?? "" },
-                                    set: { depVM.selectedDependencyVersion[dep.id] = $0 }
-                                )) {
-                                    ForEach(versions, id: \.id) { v in
-                                        Text(v.versionNumber).tag(v.id)
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                                .font(.subheadline)
+    // MARK: - Actions
+    @MainActor
+    private func handleButtonAction() {
+        if case .game = selectedItem {
+            switch addButtonState {
+            case .idle:
+                addButtonState = .loading
+                Task {
+                    // 仅对 mod 类型检查依赖
+                    if project.projectType == "mod" {
+                        if gameSettings.autoDownloadDependencies {
+                            await GameResourceHandler.downloadWithDependencies(
+                                project: project,
+                                gameInfo: gameInfo,
+                                query: query,
+                                gameRepository: gameRepository,
+                                updateButtonState: updateButtonState
+                            )
+                        } else {
+                            let hasMissingDeps = await GameResourceHandler.prepareManualDependencies(
+                                project: project,
+                                gameInfo: gameInfo,
+                                depVM: depVM
+                            )
+                            if hasMissingDeps {
+                                depVM.showDependenciesSheet = true
+                                addButtonState = .idle // Reset button state for when sheet is dismissed
+                            } else {
+                                await GameResourceHandler.downloadWithDependencies(
+                                    project: project,
+                                    gameInfo: gameInfo,
+                                    query: query,
+                                    gameRepository: gameRepository,
+                                    updateButtonState: updateButtonState
+                                )
                             }
                         }
+                    } else {
+                        // 其他类型直接下载
+                        await GameResourceHandler.downloadSingleResource(
+                            project: project,
+                            gameInfo: gameInfo,
+                            query: query,
+                            gameRepository: gameRepository,
+                            updateButtonState: updateButtonState
+                        )
                     }
                 }
-            },
-            footer: {
-                if !depVM.isLoadingDependencies && !depVM.missingDependencies.isEmpty {
-                    HStack {
-                        Button("关闭") { depVM.showDependenciesSheet = false }
-                        Spacer()
-                        Button("下载所有依赖并继续") {
-                            Task { await downloadAllDependenciesAndMain() }
-                        }
-                        .disabled(depVM.missingDependencies.contains { dep in
-                            depVM.dependencyDownloadStates[dep.id] == .downloading
-                        })
-                    }
-                } else {
-                    HStack {
-                        Spacer()
-                        Button("关闭") { depVM.showDependenciesSheet = false }
-                    }
+            case .installed:
+                if !type {
+                    showDeleteAlert = true
                 }
+            default:
+                break
             }
-        )
-        .onAppear {
-            depVM.isLoadingDependencies = true
-            depVM.resetDownloadStates()
-            Task { await prepareManualDependencies() }
-        }
-    }
-
-    // MARK: - Actions
-    private func handleButtonAction() {
-        switch addButtonState {
-        case .idle:
-            if gameSettings.autoDownloadDependencies {
+        } else if case .resource = selectedItem {
+            switch addButtonState {
+            case .idle:
                 addButtonState = .loading
-                Task { await downloadWithDependencies() }
-            } else {
-                depVM.showDependenciesSheet = true
-                Task { await prepareManualDependencies() }
+                Task {
+                    await GlobalResourceHandler.performAdd(
+                        project: project,
+                        query: query,
+                        updateButtonState: updateButtonState
+                    )
+                }
+            case .installed:
+                if !type {
+                    showDeleteAlert = true
+                }
+            default:
+                break
             }
-        case .installed:
-            if !type { showDeleteAlert = true }
-        default:
-            break
         }
     }
 
     private func updateButtonState() {
-        guard let gameInfo = gameInfo,
-              let latestGame = gameRepository.getGame(by: gameInfo.id) else { return }
-        if latestGame.resources.contains(where: { $0.id == project.projectId }) {
-            addButtonState = .installed
-        } else if addButtonState == .installed {
-            addButtonState = .idle
-        }
-    }
-
-    private func removeResource() {
-        guard let gameInfo = gameInfo else { return }
-        if let resource = gameInfo.resources.first(where: { $0.id == project.projectId }) {
-            ResourceFileManager.deleteResourceFile(for: gameInfo, resource: resource)
-        }
-        _ = gameRepository.removeResource(id: gameInfo.id, projectId: project.projectId)
-        addButtonState = .idle
-    }
-
-    private func downloadWithDependencies() async {
-        guard let gameInfo = gameInfo else { return }
-        var actuallyDownloaded: [ModrinthProjectDetail] = []
-        await ModrinthDependencyDownloader.downloadAllDependenciesRecursive(
-            for: project.projectId,
-            gameInfo: gameInfo,
-            query: query,
-            gameRepository: gameRepository,
-            actuallyDownloaded: &actuallyDownloaded
-        )
-        await MainActor.run { updateButtonState() }
-    }
-
-    private func prepareManualDependencies() async {
-        guard let gameInfo = gameInfo else { return }
-        do {
-            let missing = try await ModrinthDependencyDownloader.getMissingDependencies(
-                for: project.projectId,
-                gameInfo: gameInfo
+        if case .game = selectedItem {
+            GameResourceHandler.updateButtonState(
+                gameInfo: gameInfo,
+                project: project,
+                gameRepository: gameRepository,
+                addButtonState: &addButtonState
             )
-            let filtered = missing.filter {
-                $0.loaders.contains(gameInfo.modLoader) && $0.gameVersions.contains(gameInfo.gameVersion)
-            }
-            var versionDict: [String: [ModrinthProjectDetailVersion]] = [:]
-            var selectedVersionDict: [String: String] = [:]
-            for dep in filtered {
-                let versions = try? await ModrinthService.fetchProjectVersions(id: dep.id)
-                let filteredVersions = versions?.filter {
-                    $0.loaders.contains(gameInfo.modLoader) && $0.gameVersions.contains(gameInfo.gameVersion)
-                } ?? []
-                versionDict[dep.id] = filteredVersions
-                if let first = filteredVersions.first {
-                    selectedVersionDict[dep.id] = first.id
-                }
-            }
-            await MainActor.run {
-                depVM.missingDependencies = filtered
-                depVM.dependencyVersions = versionDict
-                depVM.selectedDependencyVersion = selectedVersionDict
-                depVM.isLoadingDependencies = false
-            }
-        } catch {
-            await MainActor.run {
-                depVM.missingDependencies = []
-                depVM.dependencyVersions = [:]
-                depVM.selectedDependencyVersion = [:]
-                depVM.isLoadingDependencies = false
-            }
-        }
-    }
-
-    private func downloadAllDependenciesAndMain() async {
-        depVM.isLoadingDependencies = true
-        guard let gameInfo = gameInfo else { return }
-        await withTaskGroup(of: Void.self) { group in
-            for dep in depVM.missingDependencies {
-                if let versionId = depVM.selectedDependencyVersion[dep.id],
-                   let versions = depVM.dependencyVersions[dep.id],
-                   let version = versions.first(where: { $0.id == versionId }),
-                   let fileURL = version.files.first?.url {
-                    group.addTask {
-                        await MainActor.run { depVM.dependencyDownloadStates[dep.id] = .downloading }
-                        do {
-                            _ = try await DownloadManager.downloadResource(
-                                for: gameInfo,
-                                urlString: fileURL,
-                                resourceType: query
-                            )
-                            await MainActor.run { depVM.dependencyDownloadStates[dep.id] = .success }
-                        } catch {
-                            await MainActor.run { depVM.dependencyDownloadStates[dep.id] = .failed }
-                        }
-                    }
-                }
-            }
-        }
-        depVM.isLoadingDependencies = false
-        await downloadMainResourceOnly()
-        depVM.showDependenciesSheet = false
-    }
-
-    private func downloadMainResourceOnly() async {
-        guard let gameInfo = gameInfo else { return }
-        let filteredVersions = try? await ModrinthService.fetchProjectVersionsFilter(
-            id: project.projectId,
-            selectedVersions: [gameInfo.gameVersion],
-            selectedLoaders: [gameInfo.modLoader]
-        )
-        if let latestVersion = filteredVersions?.first,
-           let fileURL = latestVersion.files.first?.url {
-            _ = try? await DownloadManager.downloadResource(
-                for: gameInfo,
-                urlString: fileURL,
-                resourceType: query
+        } else if case .resource = selectedItem {
+            GlobalResourceHandler.updateButtonState(
+                project: project,
+                addButtonState: &addButtonState
             )
         }
     }

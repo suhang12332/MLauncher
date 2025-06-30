@@ -18,17 +18,14 @@ struct ModrinthProjectDetailToolbarView: View {
     var onBack: () -> Void
 
     var body: some View {
-        HStack(spacing: Constants.spacing) {
-            projectIconAndTitle
-            Spacer()
-            
-            if selectedTab == 1 {
-                versionPaginationControls
-            }
-            
-            backButton
-            tabPicker
+        projectIconAndTitle
+        
+        if selectedTab == 1 {
+            versionPaginationControls
         }
+        Spacer()
+        backButton
+        tabPicker
     }
     
     // MARK: - UI Components

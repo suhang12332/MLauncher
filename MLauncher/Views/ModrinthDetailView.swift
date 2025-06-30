@@ -21,6 +21,24 @@ struct ModrinthDetailView: View {
     @State private var hasLoaded = false
     @State private var searchText: String = ""
     @State private var searchTimer: Timer? = nil
+    @Binding var gameType: Bool
+    @State private var lastSearchKey: String = ""
+    @State private var lastSearchParams: String = ""
+
+    private var searchKey: String {
+        [
+            query,
+            sortIndex,
+            selectedVersions.joined(separator: ","),
+            selectedCategories.joined(separator: ","),
+            selectedFeatures.joined(separator: ","),
+            selectedResolutions.joined(separator: ","),
+            selectedPerformanceImpact.joined(separator: ","),
+            selectedLoader.joined(separator: ","),
+            String(currentPage),
+            String(gameType)
+        ].joined(separator: "|")
+    }
 
     // MARK: - Body
     var body: some View {
@@ -35,19 +53,20 @@ struct ModrinthDetailView: View {
                 resultList
             }
         }
-        .task { await initialLoadIfNeeded() }
-        .onChange(of: currentPage) { _, _ in triggerSearch() }
-        .onChange(of: query) { _, _ in resetPageAndSearch() }
+        .task { if gameType {
+            await initialLoadIfNeeded()
+        } }
+        .onChange(of: searchKey) { _, newKey in
+            if newKey != lastSearchKey {
+                lastSearchKey = newKey
+                triggerSearch()
+            }
+        }
         .onChange(of: viewModel.totalHits) { _, newValue in totalItems = newValue }
-        .onChange(of: sortIndex) { _, _ in triggerSearch() }
-        .onChange(of: selectedVersions) { _, _ in resetPageAndSearch() }
-        .onChange(of: selectedCategories) { _, _ in resetPageAndSearch() }
-        .onChange(of: selectedFeatures) { _, _ in resetPageAndSearch() }
-        .onChange(of: selectedResolutions) { _, _ in resetPageAndSearch() }
-        .onChange(of: selectedPerformanceImpact) { _, _ in resetPageAndSearch() }
-        .onChange(of: selectedLoader) { _, _ in resetPageAndSearch() }
         .searchable(text: $searchText)
-        .onChange(of: searchText) { _, _ in debounceSearch() }
+        .onChange(of: searchText) { _, _ in
+            debounceSearch()
+        }
     }
 
     // MARK: - Private Methods
@@ -69,12 +88,33 @@ struct ModrinthDetailView: View {
 
     private func debounceSearch() {
         searchTimer?.invalidate()
-        searchTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+        searchTimer = Timer.scheduledTimer(
+            withTimeInterval: 0.5,
+            repeats: false
+        ) { _ in
             Task { await performSearch() }
         }
     }
 
     private func performSearch() async {
+        let params = [
+            query,
+            sortIndex,
+            selectedVersions.joined(separator: ","),
+            selectedCategories.joined(separator: ","),
+            selectedFeatures.joined(separator: ","),
+            selectedResolutions.joined(separator: ","),
+            selectedPerformanceImpact.joined(separator: ","),
+            selectedLoader.joined(separator: ","),
+            String(currentPage),
+            String(gameType),
+            searchText
+        ].joined(separator: "|")
+        if params == lastSearchParams {
+            // 完全重复，不请求
+            return
+        }
+        lastSearchParams = params
         await viewModel.search(
             projectType: query,
             page: currentPage,
@@ -98,10 +138,13 @@ struct ModrinthDetailView: View {
                 selectedLoaders: selectedLoader,
                 gameInfo: gameInfo,
                 query: query,
-                type: true
+                type: true,
+                selectedItem: $selectedItem
             )
             .padding(.vertical, ModrinthConstants.UI.verticalPadding)
-            .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
+            .listRowInsets(
+                EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
+            )
             .onTapGesture {
                 selectedProjectId = mod.projectId
                 if let type = ResourceType(rawValue: query) {
@@ -111,4 +154,3 @@ struct ModrinthDetailView: View {
         }
     }
 }
-

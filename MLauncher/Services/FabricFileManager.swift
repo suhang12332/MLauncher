@@ -5,14 +5,13 @@ class FabricFileManager {
     let session: URLSession
     var onProgressUpdate: ((String, Int, Int) -> Void)?
     private let fileManager = FileManager.default
-    private let maxConcurrentDownloads = 8
     private let retryCount = 3
     private let retryDelay: TimeInterval = 2
     
     init(librariesDir: URL) {
         self.librariesDir = librariesDir
         let config = URLSessionConfiguration.ephemeral
-        config.httpMaximumConnectionsPerHost = maxConcurrentDownloads
+        config.httpMaximumConnectionsPerHost = GameSettingsManager.shared.concurrentDownloads
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
         self.session = URLSession(configuration: config)
     }
@@ -25,44 +24,23 @@ class FabricFileManager {
         }
     }
     
-    func downloadFabricJars(urls: [URL]) async throws {
+    func downloadFabricJars(urls: [URL], sha1s: [String?]? = nil) async throws {
         let total = urls.count
         let counter = Counter()
+        guard let metaLibrariesDir = AppPaths.metaDirectory?.appendingPathComponent("libraries") else { return }
         try await withThrowingTaskGroup(of: Void.self) { group in
-            for url in urls {
+            for (index, url) in urls.enumerated() {
                 group.addTask { [weak self] in
                     guard let self = self else { return }
                     let fileName = url.lastPathComponent
-                    let urlPath = url.path
-                    let relativePath = urlPath.hasPrefix("/") ? String(urlPath.dropFirst()) : urlPath
-                    let destURL = self.librariesDir.appendingPathComponent(relativePath)
-                    let destDir = destURL.deletingLastPathComponent()
-                    try self.fileManager.createDirectory(at: destDir, withIntermediateDirectories: true)
-                    if self.fileManager.fileExists(atPath: destURL.path) {
-                        let currentCompleted = await counter.increment()
-                        await MainActor.run {
-                            self.onProgressUpdate?(fileName, currentCompleted, total)
-                        }
-                        return
-                    }
-                    var lastError: Error?
-                    for attempt in 0..<self.retryCount {
-                        do {
-                            let (data, response) = try await self.session.data(from: url)
-                            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                                throw URLError(.badServerResponse)
-                            }
-                            try data.write(to: destURL)
-                            break
-                        } catch {
-                            lastError = error
-                            if attempt < self.retryCount - 1 {
-                                try await Task.sleep(nanoseconds: UInt64(self.retryDelay * 1_000_000_000))
-                                continue
-                            } else {
-                                throw lastError ?? URLError(.unknown)
-                            }
-                        }
+                    let mavenPath = FabricFileManager.mavenURLToMavenPath(url: url)
+                    let destinationURL = metaLibrariesDir.appendingPathComponent(mavenPath)
+                    try self.fileManager.createDirectory(at: destinationURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+                    let expectedSha1 = sha1s?.count ?? 0 > index ? sha1s?[index] : nil
+                    do {
+                        _ = try await DownloadManager.downloadFile(urlString: url.absoluteString, destinationURL: destinationURL, expectedSha1: expectedSha1)
+                    } catch {
+                        throw error
                     }
                     let currentCompleted = await counter.increment()
                     await MainActor.run {
@@ -72,5 +50,10 @@ class FabricFileManager {
             }
             try await group.waitForAll()
         }
+    }
+
+    static func mavenURLToMavenPath(url: URL) -> String {
+        let components = url.path.split(separator: "/")
+        return components.joined(separator: "/")
     }
 } 

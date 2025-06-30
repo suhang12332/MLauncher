@@ -21,7 +21,7 @@ struct ContentView: View {
     @Binding var loadedProjectDetail: ModrinthProjectDetail?
     @Binding var gameResourcesType: String
     @Binding var selectedLoaders: [String]
-    @Binding var gameResourcesLocation: Bool
+    @Binding var gameType: Bool
     @Binding var gameId: String?
     
     @EnvironmentObject var gameRepository: GameRepository
@@ -43,7 +43,7 @@ struct ContentView: View {
     @ViewBuilder
     private func gameContentView(gameId: String) -> some View {
         if let game = gameRepository.getGame(by: gameId) {
-            if gameResourcesLocation {
+            if gameType {
                 serverModeView(game: game)
             } else {
                 localModeView(game: game)

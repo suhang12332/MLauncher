@@ -9,6 +9,7 @@ enum MinecraftService {
         let (data, _) = try await URLSession.shared.data(
             from: URLConfig.API.Minecraft.versionList
         )
+        Logger.shared.info("Modrinth 搜索 URL：\(URLConfig.API.Minecraft.versionList)")
         return try JSONDecoder().decode(MojangVersionManifest.self, from: data)
     }
 

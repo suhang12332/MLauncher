@@ -16,6 +16,24 @@ MLauncher 是一个现代化的 macOS版的 Minecraft 启动器，为用户提�
 - 🧩 **Fabric Loader 支持**: 集成 Fabric Loader 管理与自动安装，便于模组环境搭建。
 - 🛡 **启动命令构建优化**: Minecraft 启动命令构建器重构，JVM 参数拼接更清晰，移除冗余参数，提升启动兼容性与可维护性。
 
+## 🧑‍💻 开发者接口变更
+
+### ModrinthDependencyDownloader.downloadMainResourceOnly 新增参数
+
+`downloadMainResourceOnly` 现已支持 `filterLoader: Bool` 参数（默认 `true`），用于控制是否对 mod loader 进行过滤：
+
+```swift
+let success = await ModrinthDependencyDownloader.downloadMainResourceOnly(
+    mainProjectId: "xxxx",
+    gameInfo: gameInfo,
+    query: "mod",
+    gameRepository: gameRepository,
+    filterLoader: false // 不进行 loader 过滤
+)
+```
+
+- `filterLoader = true`（默认）：只下载与当前游戏 loader 匹配的版本。
+- `filterLoader = false`：不对 loader 进行过滤，下载所有可用版本。
 
 ## 🛠 技术栈
 

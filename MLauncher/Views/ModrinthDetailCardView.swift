@@ -9,7 +9,7 @@ struct ModrinthDetailCardView: View {
     let gameInfo: GameVersionInfo?
     let query: String
     let type: Bool  // false = local, true = server
-    
+    @Binding var selectedItem: SidebarItem
     @State private var addButtonState: AddButtonState = .idle
     @State private var showDeleteAlert = false
     @EnvironmentObject private var gameRepository: GameRepository
@@ -111,7 +111,8 @@ struct ModrinthDetailCardView: View {
                 selectedLoaders: selectedLoaders,
                 gameInfo: gameInfo,
                 query: query,
-                type: type
+                type: type,
+                selectedItem: $selectedItem
             )
             .environmentObject(gameRepository)
         }

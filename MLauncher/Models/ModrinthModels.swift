@@ -14,15 +14,9 @@ public struct ModrinthProject: Codable {
     let downloads: Int
     let follows: Int
     let iconUrl: String?
-    let dateCreated: String
-    let dateModified: String
-    let latestVersion: String
     let license: String
     let clientSide: String
     let serverSide: String
-    let gallery: [String]?
-    let featuredGallery: String?
-    let color: Int?
 
     enum CodingKeys: String, CodingKey {
         case projectId = "project_id"
@@ -31,16 +25,9 @@ public struct ModrinthProject: Codable {
         case displayCategories = "display_categories"
         case versions, downloads, follows
         case iconUrl = "icon_url"
-        case dateCreated = "date_created"
-        case dateModified = "date_modified"
-        case latestVersion = "latest_version"
         case license
         case clientSide = "client_side"
         case serverSide = "server_side"
-        case gallery
-        case featuredGallery = "featured_gallery"
-        case color
-
     }
 }
 
@@ -81,6 +68,7 @@ public struct ModrinthProjectDetail: Codable, Hashable, Equatable {
     let loaders: [String]
     let gallery: [GalleryImage]?
     var type: String?
+    var fileName: String?
     
     enum CodingKeys: String, CodingKey {
         case slug
@@ -119,6 +107,7 @@ public struct ModrinthProjectDetail: Codable, Hashable, Equatable {
         case loaders
         case gallery
         case type
+        case fileName
     }
 }
 
@@ -350,15 +339,9 @@ public extension ModrinthProject {
             downloads: detail.downloads,
             follows: detail.followers,
             iconUrl: detail.iconUrl,
-            dateCreated: ISO8601DateFormatter().string(from: detail.published),
-            dateModified: ISO8601DateFormatter().string(from: detail.updated),
-            latestVersion: detail.versions.first ?? "",
             license: detail.license?.name ?? "",
             clientSide: detail.clientSide,
-            serverSide: detail.serverSide,
-            gallery: detail.gallery?.map { $0.url },
-            featuredGallery: detail.gallery?.first(where: { $0.featured })?.url,
-            color: detail.color
+            serverSide: detail.serverSide
         )
     }
 }

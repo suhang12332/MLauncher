@@ -25,7 +25,7 @@ struct DetailView: View {
     @Binding var selectTab: Int
     @Binding var versionCurrentPage: Int
     @Binding var versionTotal: Int
-    @Binding var gameResourcesLocation: Bool
+    @Binding var gameType: Bool
     @Binding var selectedLoader: [String]
     
     @EnvironmentObject var gameRepository: GameRepository
@@ -59,7 +59,7 @@ struct DetailView: View {
                 selectedPerformanceImpact: $selectedPerformanceImpact,
                 selectedProjectId: $selectedProjectId,
                 selectedLoaders: $selectedLoader,
-                gameType: $gameResourcesLocation,
+                gameType: $gameType,
                 selectedItem: $selectedItem
             )
         }
@@ -89,7 +89,8 @@ struct DetailView: View {
                 selectedProjectId: $selectedProjectId,
                 selectedLoader: $selectedLoader,
                 gameInfo: nil,
-                selectedItem: $selectedItem
+                selectedItem: $selectedItem,
+                gameType: $gameType
             )
         }
     }

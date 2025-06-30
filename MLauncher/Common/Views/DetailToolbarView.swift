@@ -6,7 +6,7 @@ public struct DetailToolbarView: ToolbarContent {
     @EnvironmentObject var playerListViewModel: PlayerListViewModel
     @Binding var sortIndex: String
     @Binding var gameResourcesType: String
-    @Binding var resourceType: Bool  // false = local, true = server
+    @Binding var gameType: Bool  // false = local, true = server
     @Binding var currentPage: Int
     @Binding var versionCurrentPage: Int
     @Binding var versionTotal: Int
@@ -41,7 +41,7 @@ public struct DetailToolbarView: ToolbarContent {
             switch selectedItem {
             case .game:
                 if let game = currentGame {
-                    if !resourceType {
+                    if !gameType {
                         if let nsImage = CommonUtil.imageFromBase64(game.gameIcon) {
                             Image(nsImage: nsImage)
                                 .resizable()
@@ -64,7 +64,7 @@ public struct DetailToolbarView: ToolbarContent {
                     }
                     resourcesTypeMenu
                     resourcesMenu
-                    if resourceType {
+                    if gameType {
                         sortMenu
                         paginationControls
                     }
@@ -114,7 +114,7 @@ public struct DetailToolbarView: ToolbarContent {
         "resource.content.type.\(gameResourcesType)".localized()
     }
     private var currentResourceTypeTitle: String {
-        resourceType ? "resource.content.type.server".localized() : "resource.content.type.local".localized()
+        gameType ? "resource.content.type.server".localized() : "resource.content.type.local".localized()
     }
 
     private var sortMenu: some View {
@@ -145,9 +145,9 @@ public struct DetailToolbarView: ToolbarContent {
 
     private var resourcesTypeMenu: some View {
         Button(action: {
-            resourceType.toggle()
+            gameType.toggle()
         }) {
-            Label(currentResourceTypeTitle, systemImage: resourceType ? "tray.and.arrow.down" : "icloud.and.arrow.down")
+            Label(currentResourceTypeTitle, systemImage: gameType ? "tray.and.arrow.down" : "icloud.and.arrow.down")
         }
         .help("view.mode.title".localized())
     }
@@ -173,9 +173,10 @@ public struct DetailToolbarView: ToolbarContent {
     }
 
     private var resourceTypesForCurrentGame: [String] {
-        var types = ["datapack", "shader", "resourcepack"]
+        var types = ["datapack", "resourcepack"]
         if let game = currentGame, game.modLoader.lowercased() != "vanilla" {
             types.insert("mod", at: 0)
+            types.insert("shader", at: 2)
         }
         return types
     }

@@ -6,7 +6,28 @@
 //
 
 import SwiftUI
+import AppKit
 
+// MARK: - Window Delegate
+class WindowDelegate: NSObject, NSWindowDelegate {
+    static let shared = WindowDelegate()
+    private var windows: [NSWindow] = []
+    
+    private override init() {
+        super.init()
+    }
+    
+    func addWindow(_ window: NSWindow) {
+        windows.append(window)
+        window.delegate = self
+    }
+    
+    func windowWillClose(_ notification: Notification) {
+        if let window = notification.object as? NSWindow {
+            windows.removeAll { $0 == window }
+        }
+    }
+}
 
 // MARK: - Views
 struct GameInfoDetailView: View {
@@ -30,7 +51,7 @@ struct GameInfoDetailView: View {
     @Binding var selectedItem: SidebarItem
     
     var body: some View {
-        VStack {
+        return VStack {
             headerView
             Divider().padding(.top, 4)
             if gameType {
@@ -47,7 +68,8 @@ struct GameInfoDetailView: View {
                     selectedProjectId: $selectedProjectId,
                     selectedLoader: $selectedLoaders,
                     gameInfo: game,
-                    selectedItem: $selectedItem
+                    selectedItem: $selectedItem,
+                    gameType: $gameType
                 )
             } else {
                 localResourceList
@@ -83,46 +105,46 @@ struct GameInfoDetailView: View {
     private var gameIcon: some View {
         Group {
             if let nsImage = CommonUtil.imageFromBase64(game.gameIcon) {
-                Image(nsImage: nsImage)
-                    .resizable()
-                    .interpolation(.none)
-                    .frame(width: 72, height: 72)
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .interpolation(.none)
+                        .frame(width: 72, height: 72)
                     .cornerRadius(12)
-            } else {
-                Image(systemName: "cube.fill")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 72, height: 72)
-                    .padding(6)
-                    .foregroundColor(.gray)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
-            }
+                } else {
+                    Image(systemName: "cube.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 72, height: 72)
+                        .padding(6)
+                        .foregroundColor(.gray)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(12)
+                }
         }
     }
 
     private var deleteButton: some View {
         HStack(spacing: 12) {
             Button(action: { showDeleteAlert = true }) {
-                Image(systemName: "trash.fill")
+                        Image(systemName: "trash.fill")
                     .padding(.vertical, 6)
                     .padding(.horizontal, 10)
-                    .background(Color.accentColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-            }
-            .buttonStyle(.plain)
-            .alert(isPresented: $showDeleteAlert) {
-                Alert(
-                    title: Text("delete.title".localized()),
-                    message: Text(String(format: "delete.game.confirm".localized(), game.gameName)),
+                            .background(Color.accentColor)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+                    .alert(isPresented: $showDeleteAlert) {
+                        Alert(
+                            title: Text("delete.title".localized()),
+                            message: Text(String(format: "delete.game.confirm".localized(), game.gameName)),
                     primaryButton: .destructive(Text("common.delete".localized())) { deleteGameAndProfile() },
-                    secondaryButton: .cancel(Text("common.cancel".localized()))
-                )
+                            secondaryButton: .cancel(Text("common.cancel".localized()))
+                        )
+                    }
+                }
             }
-        }
-    }
-
+            
     // MARK: - Local Resource List
     private var localResourceList: some View {
         let filteredResources = game.resources.filter { res in
@@ -136,7 +158,8 @@ struct GameInfoDetailView: View {
                     selectedLoaders: [game.modLoader],
                     gameInfo: game,
                     query: query,
-                    type: gameType
+                    type: gameType,
+                    selectedItem: $selectedItem
                 )
                 .padding(.vertical, ModrinthConstants.UI.verticalPadding)
                 .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
@@ -150,7 +173,7 @@ struct GameInfoDetailView: View {
         }
         .searchable(text: $searchTextForResource, placement: .automatic, prompt: "搜索资源名称")
     }
-
+    
     // MARK: - 删除游戏及其文件夹
     private func deleteGameAndProfile() {
         gameRepository.deleteGame(id: game.id)
@@ -161,6 +184,14 @@ struct GameInfoDetailView: View {
             selectedItem = .game(firstGame.id)
         } else {
             selectedItem = .resource(.mod)
+        }
+    }
+
+    private var filteredResources: [ModrinthProjectDetail] {
+        if searchTextForResource.isEmpty {
+            return game.resources
+        } else {
+            return game.resources.filter { $0.title.localizedCaseInsensitiveContains(searchTextForResource) }
         }
     }
 }

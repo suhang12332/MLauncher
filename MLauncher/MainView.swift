@@ -33,9 +33,9 @@ struct MainView: View {
     @State private var versionCurrentPage: Int = 1
     @State private var versionTotal: Int = 0
     @State private var gameResourcesType = "mod"
-    @State private var gameResourcesLocation = false  // false = local, true = server
+    @State private var gameType = true  // false = local, true = server
     @State private var gameId: String?
-
+    @State private var gameInfoToRes: Bool = false
     // MARK: - Body
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -55,7 +55,7 @@ struct MainView: View {
                 loadedProjectDetail: $loadedProjectDetail,
                 gameResourcesType: $gameResourcesType,
                 selectedLoaders: $selectedLoaders,
-                gameResourcesLocation: $gameResourcesLocation,
+                gameType: $gameType,
                 gameId: $gameId
             )
             .toolbar { ContentToolbarView() }
@@ -77,7 +77,7 @@ struct MainView: View {
                 selectTab: $selectedTab,
                 versionCurrentPage: $versionCurrentPage,
                 versionTotal: $versionTotal,
-                gameResourcesLocation: $gameResourcesLocation,
+                gameType: $gameType,
                 selectedLoader: $selectedLoaders
             )
             .toolbar {
@@ -85,7 +85,7 @@ struct MainView: View {
                     selectedItem: $selectedItem,
                     sortIndex: $sortIndex,
                     gameResourcesType: $gameResourcesType,
-                    resourceType: $gameResourcesLocation,
+                    gameType: $gameType,
                     currentPage: $currentPage,
                     versionCurrentPage: $versionCurrentPage,
                     versionTotal: $versionTotal,
@@ -101,7 +101,9 @@ struct MainView: View {
             handleSidebarItemChange(from: oldValue, to: newValue)
         }
         .onChange(of: selectedProjectId) { _, _ in
-            loadedProjectDetail = nil
+            if loadedProjectDetail != nil {
+                loadedProjectDetail = nil
+            }
         }
         .preferredColorScheme(general.themeMode.colorScheme)
     }
@@ -122,42 +124,88 @@ struct MainView: View {
 
     // MARK: - Transition Helpers
     private func handleResourceToGameTransition(gameId: String) {
-        gameResourcesLocation = false
+        if self.gameType != false {
+            self.gameType = false
+        }
         let game = gameRepository.getGame(by: gameId)
-        gameResourcesType = game?.modLoader.lowercased() == "vanilla" ? "datapack" : "mod"
+        self.gameResourcesType = game?.modLoader.lowercased() == "vanilla" ? "datapack" : "mod"
         self.gameId = gameId
-        selectedProjectId = nil
+        self.selectedProjectId = nil
+        
     }
 
     private func handleGameToGameTransition(from oldId: String, to newId: String) {
-        gameResourcesLocation = false
+        if self.gameType != false {
+            self.gameType = false
+        }
         let game = gameRepository.getGame(by: newId)
-        gameResourcesType = game?.modLoader.lowercased() == "vanilla" ? "datapack" : "mod"
-        gameId = newId
+        self.gameResourcesType = game?.modLoader.lowercased() == "vanilla" ? "datapack" : "mod"
+        self.gameId = newId
     }
 
     // MARK: - Resource Reset
     private func resetToResourceDefaults() {
-        gameResourcesLocation = true  // true = server mode
-        sortIndex = "relevance"
-        if case .resource(let resourceType) = selectedItem {
-            gameResourcesType = resourceType.rawValue
+        
+        if self.gameType != true {
+            self.gameType = true
         }
-        currentPage = 1
-        totalItems = 0
-        selectedVersions.removeAll()
-        selectedLicenses.removeAll()
-        selectedCategories.removeAll()
-        selectedFeatures.removeAll()
-        selectedResolutions.removeAll()
-        selectedPerformanceImpact.removeAll()
-        selectedLoaders.removeAll()
-        loadedProjectDetail = nil
-        selectedTab = 0
-        versionCurrentPage = 1
-        versionTotal = 0
-        selectedProjectId = nil
-        gameId = nil
+        
+        if self.sortIndex != "relevance" {
+            self.sortIndex = "relevance"
+        }
+        if case .resource(let resourceType) = selectedItem {
+            if self.gameResourcesType != resourceType.rawValue {
+                self.gameResourcesType = resourceType.rawValue
+            }
+        }
+        if self.currentPage != 1 {
+            self.currentPage = 1
+        }
+        if self.totalItems != 0 {
+            self.totalItems = 0
+        }
+        if !self.selectedVersions.isEmpty {
+            self.selectedVersions.removeAll()
+        }
+        if !self.selectedLicenses.isEmpty {
+            self.selectedLicenses.removeAll()
+        }
+        if !self.selectedCategories.isEmpty {
+            self.selectedCategories.removeAll()
+        }
+        if !self.selectedFeatures.isEmpty {
+            self.selectedFeatures.removeAll()
+        }
+        if !self.selectedResolutions.isEmpty {
+            self.selectedResolutions.removeAll()
+        }
+        if !self.selectedPerformanceImpact.isEmpty {
+            self.selectedPerformanceImpact.removeAll()
+        }
+        if !self.selectedLoaders.isEmpty {
+            self.selectedLoaders.removeAll()
+        }
+        
+        if self.selectedTab != 0 {
+            self.selectedTab = 0
+        }
+        if self.versionCurrentPage != 1 {
+            self.versionCurrentPage = 1
+        }
+        if self.versionTotal != 0 {
+            self.versionTotal = 0
+        }
+        if gameId == nil && self.selectedProjectId != nil {
+            self.selectedProjectId = nil
+        }
+        if self.selectedProjectId == nil && self.gameId != nil {
+            self.gameId = nil
+        }
+        if self.loadedProjectDetail != nil && self.gameId != nil && self.selectedProjectId != nil {
+            self.gameId = nil
+            self.loadedProjectDetail = nil
+            self.selectedProjectId = nil
+        }
     }
 }
 

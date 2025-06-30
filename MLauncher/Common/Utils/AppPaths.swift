@@ -40,4 +40,6 @@ struct AppPaths {
     static func resourcepacksDirectory(gameName: String) -> URL? {
         profileDirectory(gameName: gameName)?.appendingPathComponent("resourcepacks")
     }
-} 
+    
+    static let profileSubdirectories = ["shaderpacks", "resourcepacks", "mods", "datapacks", "crash-reports"]
+}

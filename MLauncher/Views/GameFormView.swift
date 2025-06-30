@@ -113,19 +113,7 @@ struct GameFormView: View {
 
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 0) {
-            headerView
-                .padding(.horizontal)
-                .padding()
-            Divider()
-            formContentView
-                .padding(.horizontal)
-                .padding()
-            Divider()
-            footerView
-                .padding(.horizontal)
-                .padding()
-        }
+        CommonSheetView(header: {headerView}, body: {formContentView}, footer: {footerView})
         .fileImporter(
             isPresented: $showImagePicker,
             allowedContentTypes: [.png, .jpeg, .gif],
@@ -297,8 +285,8 @@ struct GameFormView: View {
 
     private var footerView: some View {
         HStack {
-            Spacer()
             cancelButton
+            Spacer()
             confirmButton
         }
     }
@@ -339,18 +327,8 @@ struct GameFormView: View {
     }
 
     private func initializeView() async {
-        do {
-            let granted = try await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .sound, .badge])
-            if granted {
-                Logger.shared.info("通知权限已授予")
-            } else {
-                Logger.shared.warning("用户拒绝了通知权限")
-            }
-            await loadVersions()
-        } catch {
-            Logger.shared.error("初始设置过程中出错（通知或加载版本）：\(error.localizedDescription)")
-        }
+        await NotificationManager.requestAuthorizationIfNeeded()
+        await loadVersions()
     }
 
     private func handleNonCriticalError(_ error: Error, message: String) {
@@ -519,7 +497,7 @@ struct GameFormView: View {
             gameInfo = await finalizeGameInfo(gameInfo: gameInfo, manifest: downloadedManifest, fabricResult: fabricResult)
             gameRepository.addGame(gameInfo)
 
-            sendNotification(
+            NotificationManager.send(
                 title: "notification.download.complete.title".localized(),
                 body: String(format: "notification.download.complete.body".localized(), gameInfo.gameName, gameInfo.gameVersion, gameInfo.modLoader)
             )
@@ -564,15 +542,26 @@ struct GameFormView: View {
             }
         }
 
-        try await fileManager.downloadVersionFiles(manifest: manifest)
+        try await fileManager.downloadVersionFiles(manifest: manifest,gameName: gameName)
     }
     
     private func setupFabricIfNeeded() async -> (loaderVersion: String, classpath: String, mainClass: String)? {
         guard selectedModLoader.lowercased().contains("fabric") else { return nil }
         
         do {
+            guard let gameInfo = mojangVersions.first(where: { $0.id == selectedGameVersion }).map({_ in 
+                GameVersionInfo(
+                    gameName: gameName,
+                    gameIcon: gameIcon,
+                    gameVersion: selectedGameVersion,
+                    assetIndex: "",
+                    modLoader: selectedModLoader,
+                    isUserAdded: true
+                )
+            }) else { return nil }
             return try await FabricLoaderService.setupFabric(
                 for: selectedGameVersion,
+                gameInfo: gameInfo,
                 onProgressUpdate: { fileName, completed, total in
                     Task { @MainActor in
                         fabricDownloadState.updateProgress(
@@ -642,29 +631,11 @@ struct GameFormView: View {
 
     private func handleDownloadFailure(gameInfo: GameVersionInfo, error: Error) async {
         Logger.shared.error("保存游戏或下载文件时出错：\(error)")
-        sendNotification(
+        NotificationManager.send(
             title: "notification.download.failed.title".localized(),
             body: String(format: "notification.download.failed.body".localized(), gameInfo.gameName, gameInfo.gameVersion, gameInfo.modLoader, error.localizedDescription)
         )
         await MainActor.run { downloadState.reset() }
-    }
-
-    private func sendNotification(title: String, body: String) {
-        Logger.shared.info("准备发送通知：\(title) - \(body)")
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = body
-        content.sound = UNNotificationSound.default
-
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                Logger.shared.error("添加通知请求时出错：\(error.localizedDescription)")
-            } else {
-                Logger.shared.info("成功添加通知请求：\(request.identifier)")
-            }
-        }
     }
 }
 

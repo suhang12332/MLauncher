@@ -99,16 +99,16 @@ class MinecraftFileManager {
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = Constants.downloadTimeout
         config.timeoutIntervalForResource = Constants.downloadTimeout
-        config.httpMaximumConnectionsPerHost = Constants.maxConcurrentDownloads
+        config.httpMaximumConnectionsPerHost = GameSettingsManager.shared.concurrentDownloads
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
         self.session = URLSession(configuration: config)
     }
     
     // MARK: - Public Methods
-    func downloadVersionFiles(manifest: MinecraftVersionManifest) async throws {
+    func downloadVersionFiles(manifest: MinecraftVersionManifest, gameName: String) async throws {
         Logger.shared.info("开始下载 Minecraft 版本：\(manifest.id)")
         
-        try createDirectories(manifestId: manifest.id, gameName: manifest.id)
+        try createDirectories(manifestId: manifest.id, gameName: gameName)
         
         // Use bounded task groups to limit concurrency
         try await withThrowingTaskGroup(of: Void.self) { group in
@@ -141,7 +141,10 @@ class MinecraftFileManager {
             metaDirectory.appendingPathComponent("versions").appendingPathComponent(manifestId),
             profileDirectory
         ]
-        for directory in directoriesToCreate {
+        let profileSubfolders = AppPaths.profileSubdirectories.map { profileDirectory.appendingPathComponent($0) }
+        let allDirectories = directoriesToCreate + profileSubfolders
+
+        for directory in allDirectories {
             if !fileManager.fileExists(atPath: directory.path) {
                 try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
                 Logger.shared.debug("创建目录：\(directory.path)")
@@ -171,14 +174,8 @@ class MinecraftFileManager {
         guard let metaDirectory = AppPaths.metaDirectory else { throw MinecraftFileManagerError.cannotWriteFile(URL(fileURLWithPath: ""), NSError()) }
         let versionDir = metaDirectory.appendingPathComponent("versions").appendingPathComponent(manifest.id)
         let destinationURL = versionDir.appendingPathComponent("\(manifest.id).jar")
-        
-        try await downloadAndSaveFile(
-            from: manifest.downloads.client.url,
-            to: destinationURL,
-            sha1: manifest.downloads.client.sha1,
-            fileNameForNotification: "file.client.jar".localized(),
-            type: .core
-        )
+        _ = try await DownloadManager.downloadFile(urlString: manifest.downloads.client.url.absoluteString, destinationURL: destinationURL, expectedSha1: manifest.downloads.client.sha1)
+        incrementCompletedFilesCount(fileName: "file.client.jar".localized(), type: .core)
     }
     
     private func downloadLibraries(manifest: MinecraftVersionManifest) async throws {
@@ -202,15 +199,9 @@ class MinecraftFileManager {
         if let downloads = library.downloads {
             if let artifact = downloads.artifact {
                 let destinationURL = metaDirectory.appendingPathComponent("libraries").appendingPathComponent(artifact.path)
-                try await downloadAndSaveFile(
-                    from: artifact.url,
-                    to: destinationURL,
-                    sha1: artifact.sha1,
-                    fileNameForNotification: String(format: "file.library".localized(), library.name),
-                    type: .core
-                )
+                _ = try await DownloadManager.downloadFile(urlString: artifact.url.absoluteString, destinationURL: destinationURL, expectedSha1: artifact.sha1)
+                incrementCompletedFilesCount(fileName: String(format: "file.library".localized(), library.name), type: .core)
             }
-            
             if let classifiers = downloads.classifiers {
                 try await downloadNativeLibrary(library: library, classifiers: classifiers, metaDirectory: metaDirectory)
             }
@@ -218,13 +209,8 @@ class MinecraftFileManager {
             let libraryPath = library.name.replacingOccurrences(of: ":", with: "/")
                 .replacingOccurrences(of: ".", with: "/") + ".jar"
             let destinationURL = metaDirectory.appendingPathComponent("libraries").appendingPathComponent(libraryPath)
-            try await downloadAndSaveFile(
-                from: directURL,
-                to: destinationURL,
-                sha1: nil,
-                fileNameForNotification: String(format: "file.library".localized(), library.name),
-                type: .core
-            )
+            _ = try await DownloadManager.downloadFile(urlString: directURL.absoluteString, destinationURL: destinationURL, expectedSha1: nil)
+            incrementCompletedFilesCount(fileName: String(format: "file.library".localized(), library.name), type: .core)
         }
     }
     
@@ -238,17 +224,11 @@ class MinecraftFileManager {
         #else
         let osClassifier = nil
         #endif
-        
         if let classifierKey = osClassifier,
            let nativeArtifact = classifiers[classifierKey] {
             let destinationURL = metaDirectory.appendingPathComponent("natives").appendingPathComponent(nativeArtifact.path)
-            try await downloadAndSaveFile(
-                from: nativeArtifact.url,
-                to: destinationURL,
-                sha1: nativeArtifact.sha1,
-                fileNameForNotification: String(format: "file.native".localized(), library.name),
-                type: .core
-            )
+            _ = try await DownloadManager.downloadFile(urlString: nativeArtifact.url.absoluteString, destinationURL: destinationURL, expectedSha1: nativeArtifact.sha1)
+            incrementCompletedFilesCount(fileName: String(format: "file.native".localized(), library.name), type: .core)
         }
     }
     
@@ -267,23 +247,11 @@ class MinecraftFileManager {
     private func downloadAssetIndex(manifest: MinecraftVersionManifest) async throws -> MinecraftAssetIndex {
         guard let metaDirectory = AppPaths.metaDirectory else { throw MinecraftFileManagerError.cannotWriteFile(URL(fileURLWithPath: ""), NSError()) }
         let destinationURL = metaDirectory.appendingPathComponent("assets/indexes").appendingPathComponent("\(manifest.assetIndex.id).json")
-        
-        if !fileManager.fileExists(atPath: destinationURL.path) {
-            try await downloadAndSaveFile(
-                from: manifest.assetIndex.url,
-                to: destinationURL,
-                sha1: manifest.assetIndex.sha1,
-                fileNameForNotification: "file.asset.index".localized(),
-                type: .core
-            )
-        }
-        
+        _ = try await DownloadManager.downloadFile(urlString: manifest.assetIndex.url.absoluteString, destinationURL: destinationURL, expectedSha1: manifest.assetIndex.sha1)
         let data = try Data(contentsOf: destinationURL)
         let assetIndexData = try JSONDecoder().decode(AssetIndexData.self, from: data)
-        
         var totalSize = 0
         var objects: [String: MinecraftAsset] = [:]
-        
         for (path, object) in assetIndexData.objects {
             let asset = MinecraftAsset(
                 hash: object.hash,
@@ -293,7 +261,6 @@ class MinecraftFileManager {
             objects[path] = asset
             totalSize += object.size
         }
-        
         return MinecraftAssetIndex(
             id: manifest.assetIndex.id,
             url: manifest.assetIndex.url,
@@ -308,63 +275,38 @@ class MinecraftFileManager {
         let loggingFile = manifest.logging.client.file
         let versionDir = metaDirectory.appendingPathComponent("versions").appendingPathComponent(manifest.id)
         let destinationURL = versionDir.appendingPathComponent(loggingFile.id)
-        
-        try await downloadAndSaveFile(
-            from: loggingFile.url,
-            to: destinationURL,
-            sha1: loggingFile.sha1,
-            fileNameForNotification: "file.logging.config".localized(),
-            type: .core
-        )
+        _ = try await DownloadManager.downloadFile(urlString: loggingFile.url.absoluteString, destinationURL: destinationURL, expectedSha1: loggingFile.sha1)
+        incrementCompletedFilesCount(fileName: "file.logging.config".localized(), type: .core)
     }
     
     private func downloadAndSaveFile(from url: URL, to destinationURL: URL, sha1: String?, fileNameForNotification: String? = nil, type: DownloadType) async throws {
-        // Check existing file first
-        if fileManager.fileExists(atPath: destinationURL.path), let expectedSha1 = sha1 {
-            if try await verifyExistingFile(at: destinationURL, expectedSha1: expectedSha1) {
-                incrementCompletedFilesCount(fileName: fileNameForNotification ?? destinationURL.lastPathComponent, type: type)
-                return
-            }
-        }
-        
         // Create parent directory if needed
         try fileManager.createDirectory(at: destinationURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         
-        // Download with retry
-        var lastError: Error?
-        for attempt in 0..<Constants.retryCount {
-            do {
-                let (tempFileURL, response) = try await session.download(from: url)
-                defer { try? fileManager.removeItem(at: tempFileURL) }
-                
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    throw MinecraftFileManagerError.invalidResponse
-                }
-                
-                // Verify SHA1 if needed
-                if let expectedSha1 = sha1 {
-                    let downloadedSha1 = try await calculateFileSHA1(at: tempFileURL)
-                    if downloadedSha1 != expectedSha1 {
-                        throw MinecraftFileManagerError.sha1Mismatch(expected: expectedSha1, actual: downloadedSha1)
-                    }
-                }
-                
-                // Move file to final location atomically
-                try fileManager.moveItem(at: tempFileURL, to: destinationURL)
-                
-                incrementCompletedFilesCount(fileName: fileNameForNotification ?? destinationURL.lastPathComponent, type: type)
-                return
-                
-            } catch {
-                lastError = error
-                if attempt < Constants.retryCount - 1 {
-                    try await Task.sleep(nanoseconds: UInt64(Constants.retryDelay * 1_000_000_000))
-                    continue
+        // Download without retry
+        do {
+            let (tempFileURL, response) = try await session.download(from: url)
+            defer { try? fileManager.removeItem(at: tempFileURL) }
+            
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                throw MinecraftFileManagerError.invalidResponse
+            }
+            
+            // Verify SHA1 if needed
+            if let expectedSha1 = sha1 {
+                let downloadedSha1 = try await calculateFileSHA1(at: tempFileURL)
+                if downloadedSha1 != expectedSha1 {
+                    throw MinecraftFileManagerError.sha1Mismatch(expected: expectedSha1, actual: downloadedSha1)
                 }
             }
+            
+            // Move file to final location atomically
+            try fileManager.moveItem(at: tempFileURL, to: destinationURL)
+            
+            incrementCompletedFilesCount(fileName: fileNameForNotification ?? destinationURL.lastPathComponent, type: type)
+        } catch {
+            throw error
         }
-        
-        throw lastError ?? MinecraftFileManagerError.requestFailed(URLError(.unknown))
     }
     
     private func verifyExistingFile(at url: URL, expectedSha1: String) async throws -> Bool {
@@ -437,21 +379,8 @@ class MinecraftFileManager {
         let hashPrefix = String(asset.hash.prefix(2))
         let assetDirectory = objectsDirectory.appendingPathComponent(hashPrefix)
         let destinationURL = assetDirectory.appendingPathComponent(asset.hash)
-        
-        if fileManager.fileExists(atPath: destinationURL.path) {
-            if try await verifyExistingFile(at: destinationURL, expectedSha1: asset.hash) {
-                incrementCompletedFilesCount(fileName: String(format: "file.asset".localized(), path), type: .resources)
-                return
-            }
-        }
-        
-        try await downloadAndSaveFile(
-            from: asset.url,
-            to: destinationURL,
-            sha1: asset.hash,
-            fileNameForNotification: String(format: "file.asset".localized(), path),
-            type: .resources
-        )
+        _ = try await DownloadManager.downloadFile(urlString: asset.url.absoluteString, destinationURL: destinationURL, expectedSha1: asset.hash)
+        incrementCompletedFilesCount(fileName: String(format: "file.asset".localized(), path), type: .resources)
     }
 }
 

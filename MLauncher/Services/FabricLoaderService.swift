@@ -32,6 +32,7 @@ class FabricLoaderService {
     /// 获取最新的稳定版 Loader 版本
     static func fetchLatestStableLoaderVersion(for minecraftVersion: String) async throws -> FabricLoader? {
         let url = URLConfig.API.Fabric.loader.appendingPathComponent(minecraftVersion)
+        Logger.shared.info("Modrinth 搜索 URL：\(url)")
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw URLError(.badServerResponse)
@@ -78,6 +79,7 @@ class FabricLoaderService {
     /// 封装 Fabric 设置流程：获取版本、下载、生成 Classpath
     static func setupFabric(
         for gameVersion: String,
+        gameInfo: GameVersionInfo,
         onProgressUpdate: @escaping (String, Int, Int) -> Void
     ) async throws -> (loaderVersion: String, classpath: String, mainClass: String) {
         guard let loader = try await fetchLatestStableLoaderVersion(for: gameVersion) else {
